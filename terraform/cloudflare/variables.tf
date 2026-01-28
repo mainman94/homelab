@@ -63,12 +63,6 @@ variable "CLOUDFLARE_TUNNEL_STRASSGANG_ID" {
   sensitive   = true
 }
 
-variable "CLOUDFLARE_TUNNEL_EGGENBERG_ID" {
-  description = "Cloudflare Tunnel ID for Eggenberg"
-  type        = string
-  sensitive   = true
-}
-
 variable "MY_EMAIL" {
   description = "Email address for MFA access policy"
   type        = string
