@@ -1,4 +1,4 @@
-variable "cloudflare_api_token" {
+variable "CLOUDFLARE_API_KEY" {
   description = "Cloudflare API Token"
   type        = string
   sensitive   = true
