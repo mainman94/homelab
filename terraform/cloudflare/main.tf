@@ -22,33 +22,3 @@ module "hauptmann_dev_cloudflare" {
     }
   ]
 }
-
-moved {
-  from = cloudflare_dns_record.a_records_hauptmann_dev["*.hauptmann.dev"]
-  to   = module.hauptmann_dev_cloudflare.cloudflare_dns_record.a_records["*.hauptmann.dev"]
-}
-
-moved {
-  from = cloudflare_dns_record.a_records_hauptmann_dev["hauptmann.dev"]
-  to   = module.hauptmann_dev_cloudflare.cloudflare_dns_record.a_records["hauptmann.dev"]
-}
-
-moved {
-  from = cloudflare_dns_record.cname_backend_records_hauptmann_dev["registry"]
-  to   = module.hauptmann_dev_cloudflare.cloudflare_dns_record.cname_tunnel_records["registry"]
-}
-
-moved {
-  from = cloudflare_dns_record.txt_spf
-  to   = module.hauptmann_dev_cloudflare.cloudflare_dns_record.txt_spf[0]
-}
-
-moved {
-  from = cloudflare_dns_record.txt_dkim
-  to   = module.hauptmann_dev_cloudflare.cloudflare_dns_record.txt_dkim[0]
-}
-
-moved {
-  from = cloudflare_email_routing_rule.forward_hello
-  to   = module.hauptmann_dev_cloudflare.cloudflare_email_routing_rule.forwarding_rules["hello"]
-}
