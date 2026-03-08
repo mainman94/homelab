@@ -52,7 +52,7 @@ variable "a_records_hauptmann_dev" {
 variable "cname_backend_records" {
   description = "A list of CNAME records for backend services."
   type        = set(string)
-  default     = [
+  default = [
     "registry"
   ]
 }
