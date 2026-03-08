@@ -1,5 +1,5 @@
 module "homelab_repository" {
-  source = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.1"
+  source = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.2"
 
   name         = var.repository_name
   description  = var.repository_description
@@ -25,7 +25,7 @@ module "homelab_repository" {
 }
 
 module "homelab_terraform_modules_repository" {
-  source = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.1"
+  source = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.2"
 
   name         = var.modules_repository_name
   description  = var.modules_repository_description
