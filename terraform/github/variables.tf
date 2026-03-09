@@ -145,34 +145,12 @@ variable "repositories" {
 
       has_projects = false
       has_wiki     = false
-
-      rulesets = {
-        default_branch = {
-          name = "default-branch-protection"
-          rules = {
-            deletion                = true
-            non_fast_forward        = true
-            required_linear_history = true
-          }
-        }
-      }
     }
     homelab_terraform_modules = {
       name = "homelab-terraform-modules"
 
       has_projects = true
       has_wiki     = true
-
-      rulesets = {
-        default_branch = {
-          name = "default-branch-protection"
-          rules = {
-            deletion                = true
-            non_fast_forward        = true
-            required_linear_history = true
-          }
-        }
-      }
     }
     multi_k8s_infra = {
       name = "multi-k8s-infra"
