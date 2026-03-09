@@ -106,5 +106,5 @@ If this workspace receives a shared Infisical-synced variable set, make sure rep
 
 For this stack, only the following inputs should normally exist in the workspace:
 
-- `GITHUB_TOKEN` as an environment variable
+- `GH_TOKEN` as an environment variable
 - optional Terraform variables such as `github_owner` when you want to override defaults
