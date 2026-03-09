@@ -1,77 +1,91 @@
-# HomeLab MK2 - WIP
+# HomeLab MK2
 
-Infrastructure as Code for managing cloud services and DNS using Terraform.
+Infrastructure as Code for the homelab control plane, repository governance, and supporting cloud services.
 
 ## Overview
 
-This repository contains Terraform configurations to manage:
-- **Cloudflare DNS & Mail**: DNS records, email routing, and Cloudflare Tunnel configuration for the `hauptmann.dev` domain
-- **Infisical Secrets Management**: Automated secret creation and management for application environments
+This repository contains Terraform stacks for:
 
-## Project Structure
+- Cloudflare DNS, mail routing, and tunnel-backed records
+- GitHub repository governance and metadata management
+- Infisical project and secret automation
+- Shared infrastructure services such as Backblaze-managed storage wiring
+- OCI free-tier Kubernetes infrastructure
 
+## Repository structure
+
+```text
+.
+├── .github/workflows/          # CI workflows
+├── .terraformignore            # Files excluded from Terraform Cloud uploads
+├── .tfsec.yml                  # Central tfsec policy configuration
+├── renovate.json               # Dependency update policy
+└── terraform/
+    ├── cloudflare/             # Cloudflare DNS, mail, and tunnel configuration
+    ├── github/                 # GitHub repositories and branch governance
+    ├── infisical/              # Infisical projects, environments, and secrets
+    ├── infrastructure/         # Shared infrastructure integrations
+    └── oci-free-cloud-k8s/     # OCI network and Kubernetes resources
 ```
-terraform/
-├── cloudflare/          # Cloudflare DNS, mail, and tunnel configuration
-│   ├── main.tf
-│   ├── dns.tf          # A records and CNAME records
-│   ├── mail.tf         # Email routing configuration
-│   ├── provider.tf     # Cloudflare provider setup
-│   ├── variables.tf    # Input variables
-│   └── backend.tf      # State backend configuration
-└── infisical/          # Infisical secrets management
-    ├── main.tf         # Projects, workspaces, and secret resources
-    ├── provider.tf     # Infisical provider setup
-    ├── variables.tf    # Input variables
-    └── backend.tf      # State backend configuration
-```
+
+Shared Terraform modules live in the sibling repository `../homelab-terraform-modules`.
 
 ## Prerequisites
 
-- Terraform (or tofu/OpenTofu)
-- Cloudflare account with API token
-- Infisical account with API access
-- Appropriate environment variables or `.tfvars` file configured
+- Terraform or OpenTofu
+- Access to the relevant Cloudflare, GitHub, Infisical, Backblaze, and OCI accounts
+- Terraform Cloud workspace access for remote runs
+- Required secrets exposed either through Terraform Cloud variables or local environment variables for import workflows
 
-## Configuration
+## Working with stacks
 
-Before deploying, configure the required variables:
-- Cloudflare API token and zone IDs
-- Infisical API credentials
-- Domain-specific settings (IP addresses, tunnel IDs, etc.)
+Each stack under `terraform/` is a separate root module. A typical workflow is:
 
-## Deployment
+1. Change into the desired stack, for example `terraform/github`.
+2. Run `terraform init` or `terraform init -upgrade` after source or provider changes.
+3. Review with `terraform plan`.
+4. Apply with `terraform apply` once the plan is correct.
 
-1. Navigate to the desired Terraform module:
-   ```bash
-   cd terraform/cloudflare  # or terraform/infisical
-   ```
+## GitHub governance stack
 
-2. Initialize Terraform:
-   ```bash
-   terraform init
-   ```
+`terraform/github` manages repository settings through a `map(object)` model so new repositories can be added without duplicating root-module variables.
 
-3. Review the planned changes:
-   ```bash
-   terraform plan
-   ```
+The stack currently manages:
 
-4. Apply the configuration:
-   ```bash
-   terraform apply
-   ```
+- `mainman94/homelab`
+- `mainman94/homelab-terraform-modules`
+- `mainman94/multi-k8s-infra`
+- `mainman94/portfolio`
+- `mainman94/portfolio-performance`
+- `mainman94/dev-config`
 
-## CI/CD
+It also supports repository rulesets. The current defaults enable a `default-branch-protection` ruleset for selected repositories to prevent force pushes and branch deletion and to require pull requests on the default branch.
 
-This repository includes GitHub Actions workflows for security scanning using `tfsec` to validate Terraform configurations.
+## Module release flow
 
-## Dependencies
+The GitHub root stack intentionally pins tagged module releases from `mainman94/homelab-terraform-modules`.
 
-- Renovate is configured for automated dependency updates
+When the shared GitHub module changes:
+
+1. Update `../homelab-terraform-modules/modules/github`.
+2. Validate the module locally.
+3. Commit and tag a new `github-x.y.z` release in the module repository.
+4. Update the module `ref` in `terraform/github/main.tf`.
+5. Run `terraform init -upgrade` and `terraform plan` in `terraform/github`.
+
+## CI and security
+
+This repository currently includes:
+
+- `tfsec` scanning uploaded to GitHub code scanning
+- central tfsec exclusions in `.tfsec.yml`
+- Renovate for dependency and action updates
+
+## Terraform Cloud uploads
+
+`.terraformignore` keeps Terraform Cloud uploads smaller by excluding editor, VCS, and local Terraform working-directory artifacts that are not required for remote runs.
 
 ## Notes
 
-- This project is a Work in Progress (WIP)
-- Terraform state is managed and stored (see `terraform.tfstate` and backend configurations)
-- All sensitive values should be provided via environment variables or secure variable files
+- Sensitive values should be supplied via Terraform Cloud variables or secure local environment variables
+- Existing imported GitHub resources are tracked through Terraform state and refactored addresses use `moved` blocks where needed

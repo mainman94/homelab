@@ -1,6 +1,6 @@
 module "repositories" {
   for_each = var.repositories
-  source   = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.3"
+  source   = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.4"
 
   name         = each.value.name
   description  = try(each.value.description, null)
@@ -23,4 +23,5 @@ module "repositories" {
   archive_on_destroy   = each.value.archive_on_destroy
   vulnerability_alerts = try(each.value.vulnerability_alerts, null)
   default_branch       = each.value.default_branch
+  rulesets             = try(each.value.rulesets, {})
 }

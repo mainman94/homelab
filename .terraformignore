@@ -1,0 +1,6 @@
+.git/
+.github/
+.vscode/
+.ansible/
+**/.terraform/*
+**/.DS_Store
