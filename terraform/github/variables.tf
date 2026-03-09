@@ -52,5 +52,13 @@ variable "repositories" {
       has_projects = true
       has_wiki     = true
     }
+    portfolio = {
+      name        = "portfolio"
+      description = "Personal Portfolio Page"
+      visibility  = "private"
+
+      has_projects = true
+      has_wiki     = false
+    }
   }
 }

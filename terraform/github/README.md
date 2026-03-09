@@ -1,6 +1,6 @@
 # GitHub Root Stack
 
-This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homelab-terraform-modules`, and `mainman94/multi-k8s-infra` via the shared GitHub module.
+This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homelab-terraform-modules`, `mainman94/multi-k8s-infra`, and `mainman94/portfolio` via the shared GitHub module.
 
 ## Current repository mapping
 
@@ -29,6 +29,14 @@ This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homel
 - Homepage: unset
 - Description: unset
 - Default branch: `main`
+- Repository: `portfolio`
+- Visibility: `private`
+- Issues: enabled
+- Projects: enabled
+- Wiki: disabled
+- Homepage: unset
+- Description: `Personal Portfolio Page`
+- Default branch: `main`
 
 ## Usage
 
@@ -44,6 +52,8 @@ terraform import 'module.repositories["homelab_terraform_modules"].github_reposi
 terraform import 'module.repositories["homelab_terraform_modules"].github_branch_default.this[0]' homelab-terraform-modules
 terraform import 'module.repositories["multi_k8s_infra"].github_repository.this' multi-k8s-infra
 terraform import 'module.repositories["multi_k8s_infra"].github_branch_default.this[0]' multi-k8s-infra
+terraform import 'module.repositories["portfolio"].github_repository.this' portfolio
+terraform import 'module.repositories["portfolio"].github_branch_default.this[0]' portfolio
 ```
 
 If you already imported these repositories under the older module names, Terraform will migrate the state automatically via `moved` blocks in this root module.
