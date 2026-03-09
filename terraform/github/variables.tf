@@ -153,11 +153,6 @@ variable "repositories" {
             deletion                = true
             non_fast_forward        = true
             required_linear_history = true
-            pull_request = {
-              dismiss_stale_reviews_on_push     = true
-              required_approving_review_count   = 1
-              required_review_thread_resolution = true
-            }
           }
         }
       }
@@ -175,11 +170,6 @@ variable "repositories" {
             deletion                = true
             non_fast_forward        = true
             required_linear_history = true
-            pull_request = {
-              dismiss_stale_reviews_on_push     = true
-              required_approving_review_count   = 1
-              required_review_thread_resolution = true
-            }
           }
         }
       }
