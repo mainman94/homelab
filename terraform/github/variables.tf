@@ -60,5 +60,19 @@ variable "repositories" {
       has_projects = true
       has_wiki     = false
     }
+    portfolio_performance = {
+      name        = "portfolio-performance"
+      description = "Private portfolio performance files"
+      visibility  = "private"
+
+      has_projects = true
+    }
+    dev_config = {
+      name       = "dev-config"
+      visibility = "public"
+
+      has_projects = true
+      has_wiki     = true
+    }
   }
 }

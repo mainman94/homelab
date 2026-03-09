@@ -1,6 +1,6 @@
 # GitHub Root Stack
 
-This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homelab-terraform-modules`, `mainman94/multi-k8s-infra`, and `mainman94/portfolio` via the shared GitHub module.
+This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homelab-terraform-modules`, `mainman94/multi-k8s-infra`, `mainman94/portfolio`, `mainman94/portfolio-performance`, and `mainman94/dev-config` via the shared GitHub module.
 
 ## Current repository mapping
 
@@ -37,6 +37,22 @@ This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homel
 - Homepage: unset
 - Description: `Personal Portfolio Page`
 - Default branch: `main`
+- Repository: `portfolio-performance`
+- Visibility: `private`
+- Issues: enabled
+- Projects: enabled
+- Wiki: disabled
+- Homepage: unset
+- Description: `Private portfolio performance files`
+- Default branch: `main`
+- Repository: `dev-config`
+- Visibility: `public`
+- Issues: enabled
+- Projects: enabled
+- Wiki: enabled
+- Homepage: unset
+- Description: unset
+- Default branch: `main`
 
 ## Usage
 
@@ -54,6 +70,10 @@ terraform import 'module.repositories["multi_k8s_infra"].github_repository.this'
 terraform import 'module.repositories["multi_k8s_infra"].github_branch_default.this[0]' multi-k8s-infra
 terraform import 'module.repositories["portfolio"].github_repository.this' portfolio
 terraform import 'module.repositories["portfolio"].github_branch_default.this[0]' portfolio
+terraform import 'module.repositories["portfolio_performance"].github_repository.this' portfolio-performance
+terraform import 'module.repositories["portfolio_performance"].github_branch_default.this[0]' portfolio-performance
+terraform import 'module.repositories["dev_config"].github_repository.this' dev-config
+terraform import 'module.repositories["dev_config"].github_branch_default.this[0]' dev-config
 ```
 
 If you already imported these repositories under the older module names, Terraform will migrate the state automatically via `moved` blocks in this root module.
