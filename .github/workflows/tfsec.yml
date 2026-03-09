@@ -7,11 +7,11 @@ name: tfsec
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   schedule:
-    - cron: '16 13 * * 4'
+    - cron: "16 13 * * 4"
 
 jobs:
   tfsec:
@@ -30,6 +30,7 @@ jobs:
         uses: aquasecurity/tfsec-sarif-action@21ded20e8ca120cd9d3d6ab04ef746477542a608
         with:
           sarif_file: tfsec.sarif
+          config_file: ./.tfsec.yml
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v4
