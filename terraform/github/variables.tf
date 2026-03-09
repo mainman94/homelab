@@ -255,3 +255,126 @@ variable "modules_repository_default_branch" {
   type        = string
   default     = "main"
 }
+
+variable "multi_k8s_infra_repository_name" {
+  description = "Repository name to manage for the multi-k8s-infra repository."
+  type        = string
+  default     = "multi-k8s-infra"
+}
+
+variable "multi_k8s_infra_repository_description" {
+  description = "Repository description for the multi-k8s-infra repository."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
+variable "multi_k8s_infra_repository_homepage_url" {
+  description = "Repository homepage URL for the multi-k8s-infra repository."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
+variable "multi_k8s_infra_repository_visibility" {
+  description = "Repository visibility for the multi-k8s-infra repository."
+  type        = string
+  default     = "public"
+}
+
+variable "multi_k8s_infra_repository_topics" {
+  description = "Topics to manage on the multi-k8s-infra repository."
+  type        = set(string)
+  default     = []
+}
+
+variable "multi_k8s_infra_repository_has_issues" {
+  description = "Whether issues are enabled on the multi-k8s-infra repository."
+  type        = bool
+  default     = true
+}
+
+variable "multi_k8s_infra_repository_has_projects" {
+  description = "Whether projects are enabled on the multi-k8s-infra repository."
+  type        = bool
+  default     = true
+}
+
+variable "multi_k8s_infra_repository_has_wiki" {
+  description = "Whether the wiki is enabled on the multi-k8s-infra repository."
+  type        = bool
+  default     = true
+}
+
+variable "multi_k8s_infra_repository_allow_merge_commit" {
+  description = "Whether merge commits are allowed on the multi-k8s-infra repository. Null leaves the provider default behavior unchanged."
+  type        = bool
+  default     = null
+  nullable    = true
+}
+
+variable "multi_k8s_infra_repository_allow_squash_merge" {
+  description = "Whether squash merges are allowed on the multi-k8s-infra repository. Null leaves the provider default behavior unchanged."
+  type        = bool
+  default     = null
+  nullable    = true
+}
+
+variable "multi_k8s_infra_repository_allow_rebase_merge" {
+  description = "Whether rebase merges are allowed on the multi-k8s-infra repository. Null leaves the provider default behavior unchanged."
+  type        = bool
+  default     = null
+  nullable    = true
+}
+
+variable "multi_k8s_infra_repository_allow_auto_merge" {
+  description = "Whether auto-merge is allowed on the multi-k8s-infra repository. Null leaves the provider default behavior unchanged."
+  type        = bool
+  default     = null
+  nullable    = true
+}
+
+variable "multi_k8s_infra_repository_delete_branch_on_merge" {
+  description = "Whether merged branches are deleted automatically on the multi-k8s-infra repository. Null leaves the provider default behavior unchanged."
+  type        = bool
+  default     = null
+  nullable    = true
+}
+
+variable "multi_k8s_infra_repository_allow_update_branch" {
+  description = "Whether pull requests can be updated with the base branch on the multi-k8s-infra repository. Null leaves the provider default behavior unchanged."
+  type        = bool
+  default     = null
+  nullable    = true
+}
+
+variable "multi_k8s_infra_repository_allow_forking" {
+  description = "Whether the multi-k8s-infra repository can be forked."
+  type        = bool
+  default     = true
+}
+
+variable "multi_k8s_infra_repository_archived" {
+  description = "Whether the multi-k8s-infra repository is archived."
+  type        = bool
+  default     = false
+}
+
+variable "multi_k8s_infra_repository_archive_on_destroy" {
+  description = "Archive the multi-k8s-infra repository instead of deleting it on terraform destroy."
+  type        = bool
+  default     = true
+}
+
+variable "multi_k8s_infra_repository_vulnerability_alerts" {
+  description = "Whether vulnerability alerts are enabled on the multi-k8s-infra repository. Null leaves the provider default behavior unchanged."
+  type        = bool
+  default     = null
+  nullable    = true
+}
+
+variable "multi_k8s_infra_repository_default_branch" {
+  description = "Default branch to manage for the multi-k8s-infra repository."
+  type        = string
+  default     = "main"
+}

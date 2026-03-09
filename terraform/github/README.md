@@ -1,6 +1,6 @@
 # GitHub Root Stack
 
-This stack manages the GitHub repositories `mainman94/homelab` and `mainman94/homelab-terraform-modules` via the shared GitHub module.
+This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homelab-terraform-modules`, and `mainman94/multi-k8s-infra` via the shared GitHub module.
 
 ## Current repository mapping
 
@@ -21,6 +21,14 @@ This stack manages the GitHub repositories `mainman94/homelab` and `mainman94/ho
 - Homepage: unset
 - Description: unset
 - Default branch: `main`
+- Repository: `multi-k8s-infra`
+- Visibility: `public`
+- Issues: enabled
+- Projects: enabled
+- Wiki: enabled
+- Homepage: unset
+- Description: unset
+- Default branch: `main`
 
 ## Usage
 
@@ -30,11 +38,15 @@ This stack manages the GitHub repositories `mainman94/homelab` and `mainman94/ho
 4. Import the existing repositories into state:
 
 ```bash
-terraform import module.homelab_repository.github_repository.this homelab
-terraform import 'module.homelab_repository.github_branch_default.this[0]' homelab
-terraform import module.homelab_terraform_modules_repository.github_repository.this homelab-terraform-modules
-terraform import 'module.homelab_terraform_modules_repository.github_branch_default.this[0]' homelab-terraform-modules
+terraform import module.homelab.github_repository.this homelab
+terraform import 'module.homelab.github_branch_default.this[0]' homelab
+terraform import module.homelab_terraform_modules.github_repository.this homelab-terraform-modules
+terraform import 'module.homelab_terraform_modules.github_branch_default.this[0]' homelab-terraform-modules
+terraform import module.multi_k8s_infra.github_repository.this multi-k8s-infra
+terraform import 'module.multi_k8s_infra.github_branch_default.this[0]' multi-k8s-infra
 ```
+
+If you already imported these repositories under the older module names, Terraform will migrate the state automatically via `moved` blocks in this root module.
 
 5. Run `terraform plan` and adjust any optional repository settings that should be managed explicitly.
 
