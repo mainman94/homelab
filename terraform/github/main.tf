@@ -1,33 +1,3 @@
-moved {
-  from = module.homelab_repository
-  to   = module.homelab
-}
-
-moved {
-  from = module.homelab
-  to   = module.repositories["homelab"]
-}
-
-moved {
-  from = module.homelab_terraform_modules_repository
-  to   = module.homelab_terraform_modules
-}
-
-moved {
-  from = module.homelab_terraform_modules
-  to   = module.repositories["homelab_terraform_modules"]
-}
-
-moved {
-  from = module.multi_k8s_infra_repository
-  to   = module.multi_k8s_infra
-}
-
-moved {
-  from = module.multi_k8s_infra
-  to   = module.repositories["multi_k8s_infra"]
-}
-
 module "repositories" {
   for_each = var.repositories
   source   = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.2"
