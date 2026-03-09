@@ -38,15 +38,19 @@ This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homel
 4. Import the existing repositories into state:
 
 ```bash
-terraform import module.homelab.github_repository.this homelab
-terraform import 'module.homelab.github_branch_default.this[0]' homelab
-terraform import module.homelab_terraform_modules.github_repository.this homelab-terraform-modules
-terraform import 'module.homelab_terraform_modules.github_branch_default.this[0]' homelab-terraform-modules
-terraform import module.multi_k8s_infra.github_repository.this multi-k8s-infra
-terraform import 'module.multi_k8s_infra.github_branch_default.this[0]' multi-k8s-infra
+terraform import 'module.repositories["homelab"].github_repository.this' homelab
+terraform import 'module.repositories["homelab"].github_branch_default.this[0]' homelab
+terraform import 'module.repositories["homelab_terraform_modules"].github_repository.this' homelab-terraform-modules
+terraform import 'module.repositories["homelab_terraform_modules"].github_branch_default.this[0]' homelab-terraform-modules
+terraform import 'module.repositories["multi_k8s_infra"].github_repository.this' multi-k8s-infra
+terraform import 'module.repositories["multi_k8s_infra"].github_branch_default.this[0]' multi-k8s-infra
 ```
 
 If you already imported these repositories under the older module names, Terraform will migrate the state automatically via `moved` blocks in this root module.
+
+## Configuration model
+
+Repositories are configured through the `repositories` variable as a `map(object(...))`, keyed by stable Terraform identifiers. This keeps resource addresses stable while allowing repository settings to scale without duplicating dozens of root-module variables.
 
 5. Run `terraform plan` and adjust any optional repository settings that should be managed explicitly.
 
