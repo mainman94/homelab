@@ -195,6 +195,14 @@ variable "repositories" {
 
       has_projects = true
     }
+    pp_portfolio_classifier = {
+      name        = "pp-portfolio-classifier"
+      description = "Portfolio classifier rewrite in Go"
+      visibility  = "public"
+
+      has_projects = false
+      has_wiki     = false
+    }
     dev_config = {
       name       = "dev-config"
       visibility = "public"

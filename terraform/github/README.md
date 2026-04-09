@@ -1,6 +1,6 @@
 # GitHub Root Stack
 
-This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homelab-terraform-modules`, `mainman94/multi-k8s-infra`, `mainman94/portfolio`, `mainman94/portfolio-performance`, and `mainman94/dev-config` via the shared GitHub module.
+This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homelab-terraform-modules`, `mainman94/multi-k8s-infra`, `mainman94/portfolio`, `mainman94/portfolio-performance`, `mainman94/pp-portfolio-classifier`, and `mainman94/dev-config` via the shared GitHub module.
 
 ## Module versioning
 
@@ -59,6 +59,14 @@ When the shared GitHub module changes, use this release flow:
 - Homepage: unset
 - Description: `Private portfolio performance files`
 - Default branch: `main`
+- Repository: `pp-portfolio-classifier`
+- Visibility: `public`
+- Issues: enabled
+- Projects: enabled
+- Wiki: disabled
+- Homepage: unset
+- Description: `Portfolio classifier rewrite in Go`
+- Default branch: `new-api-branch`
 - Repository: `dev-config`
 - Visibility: `public`
 - Issues: enabled
@@ -86,6 +94,8 @@ terraform import 'module.repositories["portfolio"].github_repository.this' portf
 terraform import 'module.repositories["portfolio"].github_branch_default.this[0]' portfolio
 terraform import 'module.repositories["portfolio_performance"].github_repository.this' portfolio-performance
 terraform import 'module.repositories["portfolio_performance"].github_branch_default.this[0]' portfolio-performance
+terraform import 'module.repositories["pp_portfolio_classifier"].github_repository.this' pp-portfolio-classifier
+terraform import 'module.repositories["pp_portfolio_classifier"].github_branch_default.this[0]' pp-portfolio-classifier
 terraform import 'module.repositories["dev_config"].github_repository.this' dev-config
 terraform import 'module.repositories["dev_config"].github_branch_default.this[0]' dev-config
 ```
