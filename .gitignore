@@ -6,3 +6,6 @@
 .terraform/
 .ansible
 .vscode
+.idea
+kubeconfig
+talosconfig
