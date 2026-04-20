@@ -11,6 +11,7 @@ This repository contains Terraform stacks for:
 - Infisical project and secret automation
 - Shared infrastructure services such as Backblaze-managed storage wiring
 - OCI free-tier Kubernetes infrastructure
+- Talos bare-metal cluster bootstrapping
 
 ## Repository structure
 
@@ -25,7 +26,8 @@ This repository contains Terraform stacks for:
     ├── github/                 # GitHub repositories and branch governance
     ├── infisical/              # Infisical projects, environments, and secrets
     ├── infrastructure/         # Shared infrastructure integrations
-    └── oci-free-cloud-k8s/     # OCI network and Kubernetes resources
+    ├── oci-free-cloud-k8s/     # OCI network and Kubernetes resources
+    └── talos/                  # Bare-metal Talos cluster bootstrapping
 ```
 
 Shared Terraform modules live in the sibling repository `../homelab-terraform-modules`.
@@ -57,9 +59,21 @@ The stack currently manages:
 - `mainman94/multi-k8s-infra`
 - `mainman94/portfolio`
 - `mainman94/portfolio-performance`
+- `mainman94/pp-portfolio-classifier`
 - `mainman94/dev-config`
 
 It also supports repository rulesets. The current defaults enable a `default-branch-protection` ruleset for selected repositories to prevent force pushes and branch deletion and to require pull requests on the default branch.
+
+## Talos bare-metal stack
+
+`terraform/talos` manages the bootstrapping of a Talos Linux cluster on bare metal. It uses a Terraform-first workflow to:
+
+- Generate machine configurations based on schematics and patches.
+- Manage cluster secrets and bootstrap the first control-plane node.
+- Scale the control plane to a 3-node HA setup.
+- Integrate with Longhorn for distributed storage.
+
+Detailed instructions can be found in `terraform/talos/README.md`.
 
 ## Module release flow
 

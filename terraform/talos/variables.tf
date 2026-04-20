@@ -1,67 +1,67 @@
 variable "cluster_name" {
-  description = "Name of the Talos/Kubernetes cluster."
+  description = "Talos/Kubernetes cluster name."
   type        = string
-  default     = "homelab"
+  default     = "talos-bm"
 }
 
 variable "cluster_endpoint" {
-  description = "VIP or load balancer endpoint for the Kubernetes API server."
+  description = "Kubernetes API endpoint including scheme and port."
   type        = string
-  default     = "https://192.168.178.10:6443"
 }
 
-variable "controlplane_vip" {
-  description = "Native Talos VIP used by the control plane nodes."
+variable "cluster_vip" {
+  description = "Virtual IP used by the control plane nodes."
   type        = string
-  default     = "192.168.178.10"
 }
 
-variable "network_interface" {
-  description = "Network interface name used on all control plane nodes."
+variable "gateway" {
+  description = "Default IPv4 gateway for all nodes."
   type        = string
-  default     = "eth0"
 }
 
-variable "longhorn_namespace" {
-  description = "Namespace used by Longhorn."
+variable "talos_version" {
+  description = "Talos version used for the factory installer image."
   type        = string
-  default     = "longhorn-system"
+  default     = "v1.12.6"
 }
 
-variable "longhorn_data_path" {
-  description = "Host path used by Longhorn for data storage on Talos."
+variable "kubernetes_version" {
+  description = "Target Kubernetes version."
   type        = string
-  default     = "/var/mnt/longhorn"
+  default     = "v1.35.2"
 }
 
-variable "nodes" {
-  description = "Definition of the three Talos control plane nodes."
+variable "schematic_file" {
+  description = "Path to the Talos Image Factory schematic file."
+  type        = string
+  default     = "schematic.yaml"
+}
+
+variable "common_config_patch_file" {
+  description = "Path to the shared Talos config patch."
+  type        = string
+  default     = "patch.yaml"
+}
+
+variable "controlplane_nodes" {
+  description = "Bare-metal control plane nodes. Start with cp1, then add cp2 and cp3 over time."
   type = map(object({
-    hostname     = string
-    ip           = string
-    install_disk = string
+    management_ip        = string
+    node_name            = optional(string)
+    install_disk         = string
+    interface            = string
+    address_cidr         = string
+    data_disk            = optional(string)
+    data_disk_mountpoint = optional(string, "/var/mnt/longhorn")
   }))
 
-  default = {
-    node-1 = {
-      hostname     = "talos-01"
-      ip           = "192.168.178.11"
-      install_disk = "/dev/sda"
-    }
-    node-2 = {
-      hostname     = "talos-02"
-      ip           = "192.168.178.12"
-      install_disk = "/dev/sda"
-    }
-    node-3 = {
-      hostname     = "talos-03"
-      ip           = "192.168.178.13"
-      install_disk = "/dev/sda"
-    }
+  validation {
+    condition     = contains(keys(var.controlplane_nodes), "cp1")
+    error_message = "controlplane_nodes must contain at least the cp1 entry."
   }
 
   validation {
-    condition     = contains([1, 3], length(var.nodes))
-    error_message = "Please define either one or three nodes."
+    condition     = length(var.controlplane_nodes) >= 1 && length(var.controlplane_nodes) <= 3
+    error_message = "controlplane_nodes must contain between 1 and 3 nodes."
   }
 }

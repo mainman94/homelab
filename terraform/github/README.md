@@ -62,11 +62,11 @@ When the shared GitHub module changes, use this release flow:
 - Repository: `pp-portfolio-classifier`
 - Visibility: `public`
 - Issues: enabled
-- Projects: enabled
+- Projects: disabled
 - Wiki: disabled
 - Homepage: unset
 - Description: `Portfolio classifier rewrite in Go`
-- Default branch: `new-api-branch`
+- Default branch: `main`
 - Repository: `dev-config`
 - Visibility: `public`
 - Issues: enabled
@@ -78,8 +78,8 @@ When the shared GitHub module changes, use this release flow:
 
 ## Usage
 
-1. In Terraform Cloud, set `GITHUB_TOKEN` as an environment variable for the `github` workspace.
-2. For local `terraform import`, make sure the same token is also present in your local shell as `GITHUB_TOKEN`.
+1. In Terraform Cloud, set `GH_TOKEN` as an environment variable for the `github` workspace.
+2. For local `terraform import`, make sure the same token is also present in your local shell as `GH_TOKEN`.
 3. Run `terraform init` in this directory.
 4. Import the existing repositories into state:
 
@@ -102,13 +102,13 @@ terraform import 'module.repositories["dev_config"].github_branch_default.this[0
 
 If you already imported these repositories under the older module names, Terraform will migrate the state automatically via `moved` blocks in this root module.
 
+5. Run `terraform plan` and adjust any optional repository settings that should be managed explicitly.
+
 ## Configuration model
 
 Repositories are configured through the `repositories` variable as a `map(object(...))`, keyed by stable Terraform identifiers. This keeps resource addresses stable while allowing repository settings to scale without duplicating dozens of root-module variables.
 
 The object model also supports optional repository rulesets so branch governance can be defined alongside visibility, merge settings, and default branch management.
-
-5. Run `terraform plan` and adjust any optional repository settings that should be managed explicitly.
 
 ## Terraform Cloud note
 

@@ -1,58 +1,58 @@
 # Talos Bare-Metal Bootstrap
 
-Dieses Verzeichnis ist auf einen Terraform-first-Workflow für Talos auf Bare Metal ausgelegt.
+This directory is designed around a Terraform-first workflow for Talos on bare metal.
 
-Enthalten sind:
+It contains:
 
-- das Factory-Schematic in [schematic.yaml](/Users/philippmatthiashauptmann/work/talos/schematic.yaml)
-- der gemeinsame Cluster-Patch in [patch.yaml](/Users/philippmatthiashauptmann/work/talos/patch.yaml)
-- die Terraform-Konfiguration in [terraform/main.tf](/Users/philippmatthiashauptmann/work/talos/terraform/main.tf)
+- the factory schematic in [schematic.yaml](schematic.yaml)
+- the shared cluster patch in [patch.yaml](patch.yaml)
+- the Terraform configuration in [main.tf](main.tf)
 
-Die vorhandenen [controlplane.yaml](/Users/philippmatthiashauptmann/work/talos/controlplane.yaml) und [worker.yaml](/Users/philippmatthiashauptmann/work/talos/worker.yaml) sind alte generierte Artefakte und nicht Teil des empfohlenen Workflows.
+Previously generated Talos machine configs such as `controlplane.yaml` and `worker.yaml` are not part of the recommended workflow in this directory.
 
-## Zielbild
+## Target topology
 
-Ziel ist ein Bare-Metal-Cluster, der so aufgebaut wird:
+The intended bare-metal cluster rollout is:
 
-1. zuerst nur `cp1`
-2. danach `cp2`
-3. danach `cp3`
+1. first `cp1`
+2. then `cp2`
+3. then `cp3`
 
-Die Zieltopologie ist also:
+The target topology is therefore:
 
 - `cp1`: control plane
 - `cp2`: control plane
 - `cp3`: control plane
 
-So bekommst du zuerst einen lauffähigen Cluster und erhöhst danach auf ein 3-Node-Control-Plane-Setup mit etcd-Quorum und API-HA.
+This gives you a working cluster first and then expands it to a 3-node control-plane setup with etcd quorum and API HA.
 
-## Technische Basis
+## Technical baseline
 
-Das Schematic aus [schematic.yaml](/Users/philippmatthiashauptmann/work/talos/schematic.yaml) enthält diese Extensions:
+The schematic in [schematic.yaml](schematic.yaml) includes these extensions:
 
 - `siderolabs/iscsi-tools`
 - `siderolabs/nfs-utils`
 - `siderolabs/util-linux-tools`
 
-Der gemeinsame Patch in [patch.yaml](/Users/philippmatthiashauptmann/work/talos/patch.yaml) setzt:
+The shared patch in [patch.yaml](patch.yaml) sets:
 
-- kein eingebautes CNI
-- `kube-proxy` deaktiviert
+- no built-in CNI
+- `kube-proxy` disabled
 
-Das bedeutet: nach dem Bootstrap musst du direkt ein CNI mit kube-proxy-Replacement installieren, typischerweise Cilium.
+That means you must install a CNI with kube-proxy replacement immediately after bootstrap, typically Cilium.
 
-## Voraussetzungen
+## Prerequisites
 
-Du brauchst:
+You need:
 
 - `terraform`
 - `talosctl`
 - `kubectl`
-- 1 bis 3 Bare-Metal-Server
-- ein Netz mit festen IPs
-- idealerweise eine API-VIP, z. B. `192.168.0.10`
+- 1 to 3 bare-metal servers
+- a network with static IPs
+- ideally an API VIP, for example `192.168.0.10`
 
-Beispiel:
+Example:
 
 - `cp1`: `192.168.0.11`
 - `cp2`: `192.168.0.12`
@@ -60,18 +60,18 @@ Beispiel:
 - `cluster endpoint / VIP`: `192.168.0.10`
 - `gateway`: `192.168.0.2`
 
-## Factory-ID aus dem Schematic
+## Factory ID from the schematic
 
-Die Terraform-Konfiguration verwendet den Talos-Provider `0.10.x` und erzeugt die Factory-ID direkt aus [schematic.yaml](/Users/philippmatthiashauptmann/work/talos/schematic.yaml) über `talos_image_factory_schematic`.
+The Terraform configuration uses Talos provider `0.10.x` and generates the factory ID directly from [schematic.yaml](schematic.yaml) via `talos_image_factory_schematic`.
 
-Du musst die `schematic_id` daher nicht manuell in Terraform pflegen.
+You do not need to manage `schematic_id` manually in Terraform.
 
-Wenn du die ID trotzdem vorab prüfen willst, hast du zwei Wege:
+If you still want to inspect the ID in advance, there are two options:
 
-1. in der Talos Image Factory im Browser
-2. per API-Aufruf mit `curl`
+1. in the Talos Image Factory in the browser
+2. through an API call with `curl`
 
-Beispiel:
+Example:
 
 ```bash
 curl -X POST \
@@ -80,31 +80,31 @@ curl -X POST \
   https://factory.talos.dev/schematics
 ```
 
-Die Antwort enthält die erzeugte Schematic-ID.
+The response contains the generated schematic ID.
 
-## Terraform-Struktur
+## Terraform structure
 
-Die eigentliche Cluster-Verwaltung liegt in:
+The actual cluster management lives in:
 
-- [terraform/versions.tf](/Users/philippmatthiashauptmann/work/talos/terraform/versions.tf)
-- [terraform/variables.tf](/Users/philippmatthiashauptmann/work/talos/terraform/variables.tf)
-- [terraform/main.tf](/Users/philippmatthiashauptmann/work/talos/terraform/main.tf)
-- [terraform/outputs.tf](/Users/philippmatthiashauptmann/work/talos/terraform/outputs.tf)
-- [terraform/terraform.tfvars.example](/Users/philippmatthiashauptmann/work/talos/terraform/terraform.tfvars.example)
+- [versions.tf](versions.tf)
+- [variables.tf](variables.tf)
+- [main.tf](main.tf)
+- [outputs.tf](outputs.tf)
+- [terraform.tfvars.example](terraform.tfvars.example)
 
-Die Konfiguration macht Folgendes:
+The configuration does the following:
 
-- registriert das Schematic aus [schematic.yaml](/Users/philippmatthiashauptmann/work/talos/schematic.yaml)
-- erzeugt Cluster-Secrets
-- generiert daraus die Talos-Machine-Configs
-- patcht pro Node Netzwerk sowie Install-/Data-Disks
-- spielt die Konfiguration auf die Nodes
-- bootstrapped `cp1`
-- zieht `talosconfig` und `kubeconfig` als Terraform-Outputs
+- registers the schematic from [schematic.yaml](schematic.yaml)
+- generates cluster secrets
+- generates Talos machine configs from those secrets
+- patches networking plus install and data disks per node
+- applies the configuration to the nodes
+- bootstraps `cp1`
+- exposes `talosconfig` and `kubeconfig` as Terraform outputs
 
-## Wichtige Variablen
+## Important variables
 
-Die wichtigsten Eingaben stehen in [terraform/terraform.tfvars.example](/Users/philippmatthiashauptmann/work/talos/terraform/terraform.tfvars.example):
+The most important inputs are shown in [terraform.tfvars.example](terraform.tfvars.example):
 
 - `cluster_endpoint`
 - `cluster_vip`
@@ -113,18 +113,17 @@ Die wichtigsten Eingaben stehen in [terraform/terraform.tfvars.example](/Users/p
 - `kubernetes_version`
 - `controlplane_nodes`
 
-`kubernetes_version` kommt nicht automatisch "von Talos", sondern wird in [terraform/main.tf](/Users/philippmatthiashauptmann/work/talos/terraform/main.tf) bewusst an `talos_machine_configuration` übergeben. Das ist sinnvoll, weil die Zielversion damit explizit und reproduzierbar ist.
+`kubernetes_version` is not derived automatically from Talos. It is passed explicitly to `talos_machine_configuration` in [main.tf](main.tf), which keeps the target version explicit and reproducible.
 
-## Schritt 1: `cp1` definieren
+## Step 1: define `cp1`
 
-Erstelle zuerst deine lokale Arbeitsdatei:
+First create your local working file:
 
 ```bash
-cd terraform
 cp terraform.tfvars.example terraform.tfvars
 ```
 
-Trage zunächst nur `cp1` ein:
+Initially define only `cp1`:
 
 ```hcl
 cluster_name     = "talos-bm"
@@ -149,112 +148,110 @@ controlplane_nodes = {
 }
 ```
 
-Wichtig:
+Important:
 
-- `install_disk` muss zum echten Bare-Metal-Host passen
-- `interface` muss der echte NIC-Name sein
-- `cluster_endpoint` sollte auf deine VIP zeigen
-- `node_name` ist optional und setzt den Talos/Kubernetes-Node-Namen (Hostname)
-- `data_disk` ist optional pro Node und wird für Longhorn-Daten genutzt
+- `install_disk` must match the real bare-metal host
+- `interface` must match the real NIC name
+- `cluster_endpoint` should point to your VIP
+- `node_name` is optional and sets the Talos and Kubernetes node name
+- `data_disk` is optional per node and is used for Longhorn data
 
-Formatierung/Provisionierung der `data_disk`:
+Formatting and provisioning of `data_disk`:
 
-- Talos provisioniert die zusätzliche Disk beim Anwenden der Machine-Config (falls noch nicht passend provisioniert).
-- Dabei wird die Partition angelegt und auf den angegebenen Mountpoint eingehängt.
-- Für Stabilität besser `/dev/disk/by-id/...` statt `/dev/sdX` verwenden.
+- Talos provisions the extra disk when the machine config is applied, if the disk is not already provisioned as required.
+- During that process, the partition is created and mounted at the configured mount point.
+- For stability, prefer `/dev/disk/by-id/...` over `/dev/sdX`.
 
-## Schritt 2: `cp1` mit dem Factory-Image booten
+## Step 2: boot `cp1` with the factory image
 
-Boote nur `cp1` mit dem Talos-Factory-ISO oder per PXE.
+Boot only `cp1` with the Talos factory ISO or via PXE.
 
-Das Boot-Image muss aus dem Schematic in [schematic.yaml](/Users/philippmatthiashauptmann/work/talos/schematic.yaml) gebaut sein, damit die Extensions im Installer enthalten sind.
+The boot image must be built from the schematic in [schematic.yaml](schematic.yaml) so the extensions are included in the installer.
 
-Wenn `cp1` im Maintenance Mode erreichbar ist, kannst du das optional prüfen:
+If `cp1` is reachable in maintenance mode, you can optionally verify that with:
 
 ```bash
 talosctl -n 192.168.0.11 version
 ```
 
-## Schritt 3: Terraform initialisieren und `cp1` bootstrappen
+## Step 3: initialize Terraform and bootstrap `cp1`
 
 ```bash
-cd terraform
 terraform init
 terraform apply
 ```
 
-Dabei passiert:
+This does the following:
 
-- die Factory-ID wird aus dem Schematic erzeugt
-- das Installer-Image wird daraus abgeleitet
-- Talos-Secrets werden erzeugt
-- die Maschinenkonfiguration für `cp1` wird gebaut
-- die Konfiguration wird auf `cp1` angewendet
-- `cp1` wird gebootstrapped
-- `talosconfig` und `kubeconfig` werden als Outputs bereitgestellt
+- generates the factory ID from the schematic
+- derives the installer image from it
+- generates Talos secrets
+- builds the machine configuration for `cp1`
+- applies the configuration to `cp1`
+- bootstraps `cp1`
+- exposes `talosconfig` and `kubeconfig` as outputs
 
-## Schritt 4: Zugriff prüfen
+## Step 4: verify access
 
-Talosconfig aus Terraform holen:
+Fetch the Talos config from Terraform:
 
 ```bash
 terraform output -raw talosconfig > talosconfig
 ```
 
-Kubeconfig aus Terraform holen:
+Fetch the kubeconfig from Terraform:
 
 ```bash
 terraform output -raw kubeconfig > kubeconfig
 ```
 
-Cluster prüfen:
+Check the cluster:
 
 ```bash
 talosctl --talosconfig ./talosconfig -n 192.168.0.11 health
 KUBECONFIG=./kubeconfig kubectl get nodes
 ```
 
-Direkt nach dem Bootstrap ist der Node ohne CNI noch nicht vollständig `Ready`. Das ist in diesem Setup normal.
+Immediately after bootstrap, the node will not be fully `Ready` without a CNI. That is expected in this setup.
 
-## Schritt 5: CNI installieren
+## Step 5: install the CNI
 
-Weil in [patch.yaml](/Users/philippmatthiashauptmann/work/talos/patch.yaml) `cni: none` und `proxy.disabled: true` gesetzt sind, installierst du danach direkt ein CNI mit kube-proxy-Replacement.
+Because [patch.yaml](patch.yaml) sets `cni: none` and `proxy.disabled: true`, install a CNI with kube-proxy replacement right after bootstrap.
 
-Typischerweise Cilium:
+Typically Cilium:
 
 ```bash
 helm repo add cilium https://helm.cilium.io/
 helm repo update
-helm template \
-    cilium \
-    cilium/cilium \
-    --version 1.19.2 \
-    --namespace kube-system \
-    --set ipam.mode=kubernetes \
-    --set kubeProxyReplacement=true \
-    --set securityContext.capabilities.ciliumAgent="{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}" \
-    --set securityContext.capabilities.cleanCiliumState="{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}" \
-    --set cgroup.autoMount.enabled=false \
-    --set cgroup.hostRoot=/sys/fs/cgroup \
-    --set k8sServiceHost=localhost \
-    --set k8sServicePort=7445 \
-    --set operator.replicas=1 \
-    --set gatewayAPI.enabled=true \
-    --set gatewayAPI.enableAlpn=true \
-    --set gatewayAPI.enableAppProtocol=true \
-    --set l2announcements.enabled=true
+KUBECONFIG=./kubeconfig helm upgrade --install cilium cilium/cilium \
+  --namespace kube-system \
+  --create-namespace \
+  --version 1.19.2 \
+  --set ipam.mode=kubernetes \
+  --set kubeProxyReplacement=true \
+  --set securityContext.capabilities.ciliumAgent="{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}" \
+  --set securityContext.capabilities.cleanCiliumState="{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}" \
+  --set cgroup.autoMount.enabled=false \
+  --set cgroup.hostRoot=/sys/fs/cgroup \
+  --set k8sServiceHost=localhost \
+  --set k8sServicePort=7445 \
+  --set operator.replicas=1 \
+  --set gatewayAPI.enabled=true \
+  --set gatewayAPI.enableAlpn=true \
+  --set gatewayAPI.enableAppProtocol=true \
+  --set l2announcements.enabled=true
 ```
 
-Danach erneut prüfen:
+Then check again:
 
 ```bash
 KUBECONFIG=./kubeconfig kubectl get nodes
 KUBECONFIG=./kubeconfig kubectl -n kube-system get pods
 ```
 
-## Schritt 6: Longhorn installieren
+## Step 6: install Longhorn
 
-Für Longhorn den Namespace zuerst selbst anlegen und auf `privileged` setzen:
+For Longhorn, first create the namespace and set it to `privileged`:
 
 ```bash
 KUBECONFIG=./kubeconfig kubectl create namespace longhorn-system
@@ -265,7 +262,7 @@ KUBECONFIG=./kubeconfig kubectl label namespace longhorn-system \
   --overwrite
 ```
 
-Dann Longhorn per Helm installieren (für `cp1`-only mit einer Replica):
+Then install Longhorn through Helm, using one replica for a `cp1`-only setup:
 
 ```bash
 KUBECONFIG=./kubeconfig helm repo add longhorn https://charts.longhorn.io
@@ -276,24 +273,24 @@ KUBECONFIG=./kubeconfig helm upgrade --install longhorn longhorn/longhorn \
   --set defaultSettings.defaultReplicaCount=1
 ```
 
-Status prüfen:
+Check status:
 
 ```bash
 KUBECONFIG=./kubeconfig kubectl -n longhorn-system get pods
 KUBECONFIG=./kubeconfig kubectl get sc
 ```
 
-## Schritt 7: Migration-Smoketest auf `cp1` (optional, empfohlen)
+## Step 7: migration smoke test on `cp1` (optional, recommended)
 
-Bevor du `cp2`/`cp3` hinzufügst, kannst du auf einem Single-Node-Cluster bereits Workloads und Migrationspfade testen.
+Before adding `cp2` and `cp3`, you can already validate workloads and migration paths on a single-node cluster.
 
-Falls Workloads wegen Control-Plane-Taint nicht schedulen, temporär für den Test entfernen:
+If workloads do not schedule because of the control-plane taint, temporarily remove it for the test:
 
 ```bash
 KUBECONFIG=./kubeconfig kubectl taint nodes cp1 node-role.kubernetes.io/control-plane-
 ```
 
-Beispiel-Smoke-Test:
+Example smoke test:
 
 ```bash
 KUBECONFIG=./kubeconfig kubectl create ns migration-smoke
@@ -303,15 +300,15 @@ KUBECONFIG=./kubeconfig kubectl -n migration-smoke rollout status deploy/echo
 KUBECONFIG=./kubeconfig kubectl -n migration-smoke get pods,svc,endpoints
 ```
 
-Nach dem Test wieder aufräumen:
+Clean up after the test:
 
 ```bash
 KUBECONFIG=./kubeconfig kubectl delete ns migration-smoke
 ```
 
-## Schritt 8: `cp2` hinzufügen
+## Step 8: add `cp2`
 
-Wenn `cp1` stabil läuft, ergänze `cp2` in [terraform/terraform.tfvars.example](/Users/philippmatthiashauptmann/work/talos/terraform/terraform.tfvars.example) bzw. deiner lokalen `terraform.tfvars`:
+Once `cp1` is stable, add `cp2` in [terraform.tfvars.example](terraform.tfvars.example) or in your local `terraform.tfvars`:
 
 ```hcl
 controlplane_nodes = {
@@ -334,17 +331,17 @@ controlplane_nodes = {
 }
 ```
 
-Boote `cp2` mit demselben Factory-Image und führe dann erneut aus:
+Boot `cp2` with the same factory image and then run:
 
 ```bash
 terraform apply
 ```
 
-Terraform erzeugt dann nur die zusätzliche Konfiguration für `cp2` und fügt den Node zum bestehenden Cluster hinzu.
+Terraform will then generate only the additional configuration for `cp2` and join the node to the existing cluster.
 
-## Schritt 9: `cp3` hinzufügen
+## Step 9: add `cp3`
 
-Danach identisch für `cp3`:
+After that, do the same for `cp3`:
 
 ```hcl
 controlplane_nodes = {
@@ -375,22 +372,22 @@ controlplane_nodes = {
 }
 ```
 
-Dann:
+Then run:
 
 ```bash
 terraform apply
 ```
 
-## Betrieb
+## Operations
 
-Ab diesem Punkt solltest du Konfigurationsänderungen über Terraform pflegen und nicht manuell auf den Nodes.
+From this point on, you should manage configuration changes through Terraform rather than manually on the nodes.
 
-Typische Änderungen:
+Typical changes:
 
-- neue Control-Plane-Nodes ergänzen
-- Disk- oder Netzwerkparameter anpassen
-- `talos_version` erhöhen
-- `kubernetes_version` bewusst anheben
-- Schematic erweitern und daraus ein neues Installer-Image ableiten
+- add new control-plane nodes
+- adjust disk or network parameters
+- upgrade `talos_version`
+- deliberately raise `kubernetes_version`
+- extend the schematic and derive a new installer image from it
 
-`talosctl` bleibt für Debugging sinnvoll, aber der Sollzustand sollte in Terraform liegen.
+`talosctl` is still useful for debugging, but the desired state should live in Terraform.

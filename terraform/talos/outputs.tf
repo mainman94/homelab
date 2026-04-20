@@ -1,25 +1,26 @@
+output "installer_image" {
+  description = "Talos factory installer image derived from the schematic ID."
+  value       = local.install_image
+}
+
+output "schematic_id" {
+  description = "Factory schematic ID generated from schematic.yaml."
+  value       = talos_image_factory_schematic.this.id
+}
+
+output "talos_endpoints" {
+  description = "Talos API endpoints used by the provider."
+  value       = local.endpoints
+}
+
 output "talosconfig" {
-  description = "Talos client configuration for talosctl."
+  description = "Generated talosconfig for the cluster."
   value       = data.talos_client_configuration.this.talos_config
   sensitive   = true
 }
 
 output "kubeconfig" {
-  description = "Kubeconfig retrieved from the Talos control plane."
+  description = "Admin kubeconfig downloaded after bootstrap."
   value       = talos_cluster_kubeconfig.this.kubeconfig_raw
   sensitive   = true
-}
-
-output "controlplane_endpoints" {
-  description = "Talos endpoints for the control plane nodes."
-  value       = local.talos_endpoints
-}
-
-output "machine_configurations" {
-  description = "Generated Talos machine configurations per node."
-  value = {
-    for name, config in data.talos_machine_configuration.this :
-    name => config.machine_configuration
-  }
-  sensitive = true
 }
