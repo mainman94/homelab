@@ -1,7 +1,20 @@
 locals {
-  common_patch = file("${path.module}/${var.common_config_patch_file}")
-  schematic    = file("${path.module}/${var.schematic_file}")
-  endpoints    = [for _, node in var.controlplane_nodes : node.management_ip]
+  common_patch            = file("${path.module}/${var.common_config_patch_file}")
+  schematic               = file("${path.module}/${var.schematic_file}")
+  endpoints               = [for _, node in var.controlplane_nodes : node.management_ip]
+  network_interface_alias = "lan0"
+
+  controlplane_link_alias_patches = {
+    for name, node in var.controlplane_nodes :
+    name => trimspace(<<-EOT
+      apiVersion: v1alpha1
+      kind: LinkAliasConfig
+      name: ${local.network_interface_alias}
+      selector:
+        match: mac(link.permanent_addr) == "${node.interface_mac}"
+    EOT
+    )
+  }
 
   controlplane_patches = {
     for name, node in var.controlplane_nodes :
@@ -12,7 +25,7 @@ locals {
             {
               interfaces = [
                 {
-                  interface = node.interface
+                  interface = local.network_interface_alias
                   dhcp      = false
                   addresses = [node.address_cidr]
                   routes = [
@@ -79,6 +92,7 @@ data "talos_machine_configuration" "controlplane" {
 
   config_patches = [
     local.common_patch,
+    local.controlplane_link_alias_patches[each.key],
     local.controlplane_patches[each.key],
   ]
 }

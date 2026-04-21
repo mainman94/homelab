@@ -49,7 +49,7 @@ variable "controlplane_nodes" {
     management_ip        = string
     node_name            = optional(string)
     install_disk         = string
-    interface            = string
+    interface_mac        = string
     address_cidr         = string
     data_disk            = optional(string)
     data_disk_mountpoint = optional(string, "/var/mnt/longhorn")

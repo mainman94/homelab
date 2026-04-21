@@ -1,3 +1,7 @@
+machine:
+  time:
+    servers:
+      - at.pool.ntp.org
 cluster:
   allowSchedulingOnControlPlanes: true
   network:
