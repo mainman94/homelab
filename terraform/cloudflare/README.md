@@ -11,6 +11,7 @@ The current configuration manages:
 - an SPF record
 - a DKIM record
 - an email routing rule for the `hello@hauptmann.dev` local part
+- a custom WAF skip rule for Vault API traffic (`vault.hauptmann.dev/v1/*`)
 
 ## Module versioning
 
@@ -41,6 +42,27 @@ Optional inputs with defaults include:
 - `public_ip`
 - `a_records_hauptmann_dev`
 - `cname_backend_records`
+- `vault_api_skip_rule_enabled`
+- `vault_api_hostname`
+- `vault_api_allow_cidrs`
+
+## Vault API Whitelisting While Proxied
+
+This stack configures a Cloudflare custom ruleset in phase `http_request_firewall_custom` that skips challenge/security phases for Vault API traffic:
+
+- host: `vault.hauptmann.dev` (configurable via `vault_api_hostname`)
+- path: `/v1/*`
+- optional source filter: `ip.src in { ... }` via `vault_api_allow_cidrs`
+
+If you want strict allowlisting, set fixed egress CIDRs (for local runs or self-hosted agents), for example:
+
+```hcl
+vault_api_allow_cidrs = [
+  "203.0.113.10/32",
+]
+```
+
+If `vault_api_allow_cidrs` is empty (default), the skip rule applies to any source hitting the configured host/path.
 
 ## Usage
 
