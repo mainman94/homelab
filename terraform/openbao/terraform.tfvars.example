@@ -1,0 +1,62 @@
+vault_endpoint = "https://openbao.example.com:8200"
+
+secret_domains = [
+  "github",
+  "smtp",
+  "dockerhub",
+]
+
+k8s_auth_enabled = true
+k8s_auth_path    = "kubernetes"
+k8s_disable_iss_validation = false
+k8s_host         = "https://kubernetes.default.svc:443"
+k8s_ca_cert      = <<-EOT
+-----BEGIN CERTIFICATE-----
+REPLACE_ME
+-----END CERTIFICATE-----
+EOT
+k8s_role_token_ttl      = 3600
+k8s_role_token_max_ttl  = 14400
+k8s_role_token_num_uses = 0
+k8s_access_by_domain = {
+  github = [
+    { namespace = "ci", service_account = "vault-secrets-operator" },
+    { namespace = "platform", service_account = "vault-secrets-operator" },
+  ]
+  smtp = [
+    { namespace = "mail", service_account = "vault-secrets-operator" },
+  ]
+  dockerhub = [
+    { namespace = "build", service_account = "vault-secrets-operator" },
+  ]
+}
+domain_kv_access = {
+  github = {
+    k8s    = ["runtime/*"]
+    github = ["ci/*"]
+  }
+  smtp = {
+    k8s    = ["runtime/*"]
+    github = ["ci/*"]
+  }
+  dockerhub = {
+    k8s    = ["runtime/*"]
+    github = ["ci/*"]
+  }
+}
+
+github_auth_enabled   = true
+github_auth_path      = "github"
+github_oidc_audience  = "vault"
+github_role_token_ttl      = 900
+github_role_token_max_ttl  = 3600
+github_role_token_num_uses = 10
+github_access_by_domain = {
+  github = [
+    { repository = "my-org/repo-a", ref = "refs/heads/main" },
+    { repository = "my-org/repo-b", environment = "prod" },
+  ]
+  smtp = [
+    { repository = "my-org/repo-c", ref = "refs/heads/main" },
+  ]
+}
