@@ -22,38 +22,3 @@ module "hauptmann_dev_cloudflare" {
     }
   ]
 }
-
-locals {
-  vault_api_skip_ip_condition = length(var.vault_api_allow_cidrs) > 0 ? " and ip.src in {${join(" ", sort(tolist(var.vault_api_allow_cidrs)))}}" : ""
-  vault_api_skip_expression   = "(http.host eq \"${var.vault_api_hostname}\" and starts_with(http.request.uri.path, \"/v1/\"))${local.vault_api_skip_ip_condition}"
-}
-
-resource "cloudflare_ruleset" "vault_api_skip" {
-  zone_id = var.CLOUDFLARE_ZONE_ID_HAUPTMANN_DEV
-  name    = "Vault API Client Allowlist"
-  kind    = "zone"
-  phase   = "http_request_firewall_custom"
-
-  rules = [
-    {
-      ref         = "vault_api_skip_security"
-      description = "Skip challenge/security checks for trusted Vault API clients."
-      enabled     = var.vault_api_skip_rule_enabled
-      expression  = local.vault_api_skip_expression
-      action      = "skip"
-      action_parameters = {
-        phases = [
-          "http_request_firewall_managed",
-          "http_request_sbfm",
-          "http_ratelimit",
-        ]
-        products = [
-          "bic",
-          "rateLimit",
-          "securityLevel",
-          "waf",
-        ]
-      }
-    }
-  ]
-}

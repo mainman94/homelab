@@ -57,23 +57,6 @@ variable "cname_backend_records" {
   ]
 }
 
-variable "vault_api_skip_rule_enabled" {
-  description = "Enable a Cloudflare custom WAF skip rule for Vault API traffic."
-  type        = bool
-  default     = true
-}
-
-variable "vault_api_hostname" {
-  description = "Vault API hostname that should bypass challenge logic while staying proxied."
-  type        = string
-  default     = "vault.hauptmann.dev"
-}
-
-variable "vault_api_allow_cidrs" {
-  description = "Optional source CIDRs allowed for Vault API skip rule. Empty means any source."
-  type        = set(string)
-  default     = []
-}
 
 variable "CLOUDFLARE_TUNNEL_STRASSGANG_ID" {
   description = "Cloudflare Tunnel ID for Strassgang"
