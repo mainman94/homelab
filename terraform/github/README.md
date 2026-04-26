@@ -1,6 +1,6 @@
 # GitHub Root Stack
 
-This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homelab-terraform-modules`, `mainman94/multi-k8s-infra`, `mainman94/portfolio`, `mainman94/portfolio-performance`, `mainman94/pp-portfolio-classifier`, and `mainman94/dev-config` via the shared GitHub module.
+This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homelab-terraform-modules`, `mainman94/multi-k8s-infra`, `mainman94/portfolio`, `mainman94/portfolio-performance`, `mainman94/pp-portfolio-classifier`, `mainman94/dev-config`, and `mainman94/docker-stack` via the shared GitHub module.
 
 ## Module versioning
 
@@ -75,6 +75,14 @@ When the shared GitHub module changes, use this release flow:
 - Homepage: unset
 - Description: unset
 - Default branch: `main`
+- Repository: `docker-stack`
+- Visibility: `public`
+- Issues: enabled
+- Projects: disabled
+- Wiki: disabled
+- Homepage: unset
+- Description: unset
+- Default branch: `main`
 
 ## Usage
 
@@ -98,6 +106,8 @@ terraform import 'module.repositories["pp_portfolio_classifier"].github_reposito
 terraform import 'module.repositories["pp_portfolio_classifier"].github_branch_default.this[0]' pp-portfolio-classifier
 terraform import 'module.repositories["dev_config"].github_repository.this' dev-config
 terraform import 'module.repositories["dev_config"].github_branch_default.this[0]' dev-config
+terraform import 'module.repositories["docker_stack"].github_repository.this' docker-stack
+terraform import 'module.repositories["docker_stack"].github_branch_default.this[0]' docker-stack
 ```
 
 If you already imported these repositories under the older module names, Terraform will migrate the state automatically via `moved` blocks in this root module.

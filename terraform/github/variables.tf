@@ -210,5 +210,8 @@ variable "repositories" {
       has_projects = true
       has_wiki     = true
     }
+    docker_stack = {
+      name = "docker-stack"
+    }
   }
 }

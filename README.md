@@ -61,6 +61,7 @@ The stack currently manages:
 - `mainman94/portfolio-performance`
 - `mainman94/pp-portfolio-classifier`
 - `mainman94/dev-config`
+- `mainman94/docker-stack`
 
 It also supports repository rulesets. The current defaults enable a `default-branch-protection` ruleset for selected repositories to prevent force pushes and branch deletion and to require pull requests on the default branch.
 
