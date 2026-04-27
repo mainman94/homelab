@@ -3,9 +3,6 @@ cluster_endpoint = "https://192.168.0.10:6443"
 cluster_vip      = "192.168.0.10"
 gateway          = "192.168.0.2"
 
-talos_version      = "v1.12.6"
-kubernetes_version = "v1.35.2"
-
 controlplane_nodes = {
   cp1 = {
     management_ip = "192.168.0.53"
