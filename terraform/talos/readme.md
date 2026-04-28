@@ -4,7 +4,7 @@ This directory is designed around a Terraform-first workflow for Talos on bare m
 
 It contains:
 
-- the factory schematic in [schematic.yaml](schematic.yaml)
+- the factory schematic embedded in [main.tf](main.tf)
 - the shared cluster patch in [patch.yaml](patch.yaml)
 - the Terraform configuration in [main.tf](main.tf)
 
@@ -20,7 +20,7 @@ The target topology consists of 3 control-plane nodes to ensure high availabilit
 
 ## Technical baseline
 
-The schematic in [schematic.yaml](schematic.yaml) includes these essential extensions:
+The schematic in [main.tf](main.tf) includes these essential extensions:
 
 - `siderolabs/iscsi-tools`: Required for Longhorn and other storage providers.
 - `siderolabs/nfs-utils`: For NFS mount support.
@@ -49,16 +49,16 @@ The Terraform configuration uses a stable device alias `lan0`. It maps the physi
 
 ## Factory ID from the schematic
 
-The Terraform configuration uses the Talos provider and generates the factory ID directly from [schematic.yaml](schematic.yaml) via `talos_image_factory_schematic`.
+The Terraform configuration defines the schematic directly in [main.tf](main.tf) and uses the Talos provider to generate the factory ID via `talos_image_factory_schematic`.
 
-You do not need to manage `schematic_id` manually. If you wish to inspect the ID or trigger a build manually:
+You do not need to manage `schematic_id` manually. The Terraform output will display the `schematic_id` and the generated `installer_image`:
 
 ```bash
-curl -X POST \
-  -H "Content-Type: application/yaml" \
-  --data-binary @schematic.yaml \
-  https://factory.talos.dev/schematics
+terraform output schematic_id
+terraform output installer_image
 ```
+
+If you modify the schematic in `main.tf`, Terraform will generate a new factory ID automatically.
 
 ## Step 1: Define Your Environment
 
@@ -72,7 +72,7 @@ Initially define only `cp1` to establish the cluster. Ensure `install_disk` and 
 
 ## Step 2: Boot `cp1`
 
-Boot `cp1` with the Talos factory ISO or via PXE. The installer image must be built from the schematic in [schematic.yaml](schematic.yaml) to include the required system extensions.
+Boot `cp1` with the Talos factory ISO or via PXE. The installer image is built from the schematic defined in [main.tf](main.tf) and will be output after `terraform apply`.
 
 ## Step 3: Terraform Apply & Bootstrap
 
@@ -82,6 +82,7 @@ terraform apply
 ```
 
 This will:
+
 - Register the schematic and derive the installer image.
 - Generate cluster secrets and machine configs.
 - Apply config to `cp1` and trigger the bootstrap.
@@ -149,6 +150,105 @@ Once `cp1` is healthy, add `cp2` and `cp3` to your `terraform.tfvars`. Boot them
 
 ## Operations
 
-- **Upgrades**: To upgrade Talos or Kubernetes, update the `talos_version` or `kubernetes_version` variables and run `terraform apply`.
-- **Extensions**: Modify `schematic.yaml` to add/remove system extensions. Terraform will automatically generate a new installer ID and update the nodes.
-- **Maintenance**: Use `talosctl` for deep debugging and `kubectl` for cluster management. The source of truth for node configuration remains this Terraform project.
+### Upgrading Talos
+
+To upgrade Talos to a new version:
+
+1. Update the `talos_version` in `variables.tf`:
+
+   ```bash
+   # Update talos_version in variables.tf
+   sed -i 's/default = "v1.12.x"/default = "v1.13.0"/' variables.tf
+   ```
+
+2. Run `terraform plan` to see the new installer image:
+
+   ```bash
+   terraform plan
+   ```
+
+3. Get the new installer image from the Terraform output:
+
+   ```bash
+   terraform output -raw installer_image
+   # Output: factory.talos.dev/metal-installer/<schematic>:v1.13.0
+   ```
+
+4. **Use `talosctl upgrade` instead of `terraform apply`** for a controlled, one-node-at-a-time upgrade:
+
+   ```bash
+   # Replace with your node IPs
+   INSTALLER_IMAGE=$(terraform output -raw installer_image)
+
+   # Upgrade each control plane node sequentially
+   talosctl --talosconfig ./talosconfig upgrade \
+     --nodes 192.168.0.53 \
+     --image "$INSTALLER_IMAGE"
+
+   talosctl --talosconfig ./talosconfig upgrade \
+     --nodes 192.168.0.65 \
+     --image "$INSTALLER_IMAGE"
+
+   talosctl --talosconfig ./talosconfig upgrade \
+     --nodes 192.168.0.101 \
+     --image "$INSTALLER_IMAGE"
+   ```
+
+5. Verify the upgrade on each node:
+
+   ```bash
+   talosctl --talosconfig ./talosconfig -n 192.168.0.53 version
+   # Should show the new Talos version
+   ```
+
+6. After all nodes are upgraded, run `terraform apply` to update the state:
+   ```bash
+   terraform apply
+   ```
+
+### Upgrading Kubernetes
+
+To upgrade Kubernetes, update the `kubernetes_version` in `variables.tf`:
+
+```bash
+sed -i 's/default = "v1.35.x"/default = "v1.36.0"/' variables.tf
+terraform apply
+```
+
+This will update the Kubernetes components on all nodes. Monitor the upgrade using `kubectl`.
+
+### Extensions
+
+To add or remove system extensions, modify the `schematic` block in [main.tf](main.tf). Find the `talos_image_factory_schematic` resource:
+
+```hcl
+resource "talos_image_factory_schematic" "this" {
+  schematic = yamlencode({
+    customization = {
+      systemExtensions = {
+        officialExtensions = [
+          "siderolabs/iscsi-tools",
+          "siderolabs/nfs-utils",
+          "siderolabs/util-linux-tools"
+        ]
+      }
+    }
+  })
+}
+```
+
+Add or remove extension IDs from the `officialExtensions` list. After modifying, run:
+
+```bash
+terraform plan
+# Review the new installer_image and schematic_id
+terraform apply
+```
+
+Then follow the Talos upgrade procedure to roll out the new extensions to your nodes.
+
+### Maintenance
+
+- Use `talosctl` for deep debugging and node operations.
+- Use `kubectl` for cluster management.
+- The source of truth for node configuration remains this Terraform project.
