@@ -22,13 +22,13 @@ variable "gateway" {
 variable "talos_version" {
   description = "Talos version used for the factory installer image."
   type        = string
-  default     = "v1.12.7"
+  default     = "v1.13.0"
 }
 
 variable "kubernetes_version" {
   description = "Target Kubernetes version."
   type        = string
-  default     = "v1.35.4"
+  default     = "v1.36.0"
 }
 
 variable "schematic_file" {

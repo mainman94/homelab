@@ -1,6 +1,5 @@
 locals {
   common_patch            = file("${path.module}/${var.common_config_patch_file}")
-  schematic               = file("${path.module}/${var.schematic_file}")
   endpoints               = [for _, node in var.controlplane_nodes : node.management_ip]
   network_interface_alias = "lan0"
 
@@ -65,9 +64,18 @@ locals {
 }
 
 resource "talos_image_factory_schematic" "this" {
-  schematic = local.schematic
+  schematic = yamlencode({
+    customization = {
+      systemExtensions = {
+        officialExtensions = [
+          "siderolabs/iscsi-tools",
+          "siderolabs/nfs-utils",
+          "siderolabs/util-linux-tools"
+        ]
+      }
+    }
+  })
 }
-
 resource "talos_machine_secrets" "this" {}
 
 locals {
