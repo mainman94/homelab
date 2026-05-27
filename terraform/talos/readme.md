@@ -171,7 +171,7 @@ To upgrade Talos to a new version:
 
    ```bash
    terraform output -raw installer_image
-   # Output: factory.talos.dev/metal-installer/<schematic>:v1.13.0
+   # Output: factory.talos.dev/metal-installer/<schematic>:v1.13.3
    ```
 
 4. **Use `talosctl upgrade` instead of `terraform apply`** for a controlled, one-node-at-a-time upgrade:
