@@ -1,5 +1,5 @@
 module "hauptmann_dev_cloudflare" {
-  source = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/cloudflare?ref=cloudflare-0.1.0"
+  source = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/cloudflare?ref=cloudflare-0.1.1"
 
   zone_id   = var.CLOUDFLARE_ZONE_ID_HAUPTMANN_DEV
   domain    = var.cloudflare_domain

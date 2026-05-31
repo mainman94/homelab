@@ -177,8 +177,11 @@ variable "repositories" {
     multi_k8s_infra = {
       name = "multi-k8s-infra"
 
-      has_projects = true
-      has_wiki     = true
+      has_projects = false
+      has_wiki     = false
+
+      allow_auto_merge    = true
+      allow_update_branch = true
     }
     portfolio = {
       name        = "portfolio"
