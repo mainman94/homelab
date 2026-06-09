@@ -12,5 +12,10 @@ variable "bucket_name" {
   description = "The name of the bucket to create in Backblaze B2"
   type        = string
   default     = "pmhme-backup"
+}
 
+variable "bucket_name_opencloud" {
+  description = "The name of the opencloud bucket to create in Backblaze B2"
+  type        = string
+  default     = "pmhme-opencloud"
 }
