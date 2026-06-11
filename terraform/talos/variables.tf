@@ -22,7 +22,7 @@ variable "gateway" {
 variable "talos_version" {
   description = "Talos version used for the factory installer image."
   type        = string
-  default     = "v1.13.3"
+  default     = "v1.13.4"
 }
 
 variable "kubernetes_version" {
