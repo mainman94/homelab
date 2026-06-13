@@ -111,7 +111,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
   client_configuration        = talos_machine_secrets.this.client_configuration
   machine_configuration_input = data.talos_machine_configuration.controlplane[each.key].machine_configuration
   node                        = each.value.management_ip
-  apply_mode                  = "auto"
+  apply_mode                  = "staged_if_needing_reboot"
 }
 
 resource "talos_machine_bootstrap" "this" {
