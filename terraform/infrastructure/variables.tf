@@ -19,3 +19,9 @@ variable "bucket_name_opencloud" {
   type        = string
   default     = "pmhme-opencloud"
 }
+
+variable "bucket_name_k8s_backup" {
+  description = "The name of the Kubernetes backup bucket to create in Backblaze B2"
+  type        = string
+  default     = "pmhme-k8s-backup"
+}
