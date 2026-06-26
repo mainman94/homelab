@@ -22,3 +22,21 @@ module "hauptmann_dev_cloudflare" {
     }
   ]
 }
+
+resource "cloudflare_ruleset" "firewall_custom" {
+  zone_id     = var.CLOUDFLARE_ZONE_ID_HAUPTMANN_DEV
+  name        = "default"
+  kind        = "zone"
+  phase       = "http_request_firewall_custom"
+  description = ""
+
+  rules = [
+    {
+      ref         = "a0335174c273445ebdfd3f6997bfc8ef"
+      description = "GeoBlock"
+      action      = "block"
+      enabled     = true
+      expression  = "(not ip.src.country in {\"AT\"} and http.host strict wildcard r\"*.hauptmann.dev\")"
+    }
+  ]
+}
