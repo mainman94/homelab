@@ -61,3 +61,27 @@ resource "vault_kubernetes_auth_backend_role" "eso" {
   token_policies                   = [vault_policy.eso_reader.name]
   token_ttl                        = 3600
 }
+
+# Read/write policy for a human operator, scoped to prod/* only. No access to
+# root, other mounts, or homelab paths outside prod/.
+resource "vault_policy" "homelab_prod_writer" {
+  name = "homelab-prod-writer"
+
+  policy = <<-EOT
+    path "${var.kv_mount}/data/prod/*" {
+      capabilities = ["create", "update", "read", "delete"]
+    }
+    path "${var.kv_mount}/metadata/prod/*" {
+      capabilities = ["list", "read", "delete"]
+    }
+  EOT
+}
+
+# Userpass auth for human logins (non-root). Like the kv values above, the
+# actual user + password is created manually so the password never lands in
+# TF state:
+#   bao write auth/userpass/users/homelab-user \
+#     password=<secret> token_policies=homelab-prod-writer
+resource "vault_auth_backend" "userpass" {
+  type = "userpass"
+}
