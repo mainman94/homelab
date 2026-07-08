@@ -1,37 +1,13 @@
-variable "CLOUDFLARE_API_KEY" {
-  description = "Cloudflare API Token"
+variable "vault_address" {
+  description = "OpenBao API address (public, GeoBlock-exempt host so HCP runners reach it)"
   type        = string
-  sensitive   = true
-}
-
-variable "cloudflare_zone_id" {
-  description = "Cloudflare Zone ID"
-  type        = string
-  sensitive   = true
+  default     = "https://vault.hauptmann.dev"
 }
 
 variable "cloudflare_domain" {
-  description = "Cloudflare Domain"
+  description = "Cloudflare zone / domain name"
   type        = string
-  sensitive   = true
-}
-
-variable "cloudflare_dkim_key" {
-  description = "Cloudflare DKIM Public Key"
-  type        = string
-  sensitive   = true
-}
-
-variable "CLOUDFLARE_ACCOUNT_ID" {
-  description = "Cloudflare Account ID"
-  type        = string
-  sensitive   = true
-}
-
-variable "CLOUDFLARE_ZONE_ID_HAUPTMANN_DEV" {
-  description = "Cloudflare Zone ID for hauptmann.dev"
-  type        = string
-  sensitive   = true
+  default     = "hauptmann.dev"
 }
 
 variable "public_ip" {
@@ -52,17 +28,5 @@ variable "a_records_hauptmann_dev" {
 variable "cname_backend_records" {
   description = "A list of CNAME records for backend services."
   type        = set(string)
-  default = []
-}
-
-
-variable "CLOUDFLARE_TUNNEL_STRASSGANG_ID" {
-  description = "Cloudflare Tunnel ID for Strassgang"
-  type        = string
-  sensitive   = true
-}
-
-variable "MY_EMAIL" {
-  description = "Email address for MFA access policy"
-  type        = string
+  default     = []
 }

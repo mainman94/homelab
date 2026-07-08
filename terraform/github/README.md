@@ -86,8 +86,14 @@ When the shared GitHub module changes, use this release flow:
 
 ## Usage
 
-1. In Terraform Cloud, set `GH_TOKEN` as an environment variable for the `github` workspace.
-2. For local `terraform import`, make sure the same token is also present in your local shell as `GH_TOKEN`.
+1. The GitHub token is read from OpenBao (`homelab/prod/github`, key `PAT`) via
+   the `vault` provider. Enable HCP workload-identity auth on the `github`
+   workspace with these env vars (no static token):
+   - `TFC_VAULT_PROVIDER_AUTH=true`
+   - `TFC_VAULT_ADDR=https://vault.hauptmann.dev`
+   - `TFC_VAULT_RUN_ROLE=tfc-github`
+2. For local `terraform import`, export `VAULT_ADDR`/`VAULT_TOKEN` (a token with
+   the `tfc-github-reader` policy) so the `vault` data source can read the PAT.
 3. Run `terraform init` in this directory.
 4. Import the existing repositories into state:
 
@@ -122,9 +128,11 @@ The object model also supports optional repository rulesets so branch governance
 
 ## Terraform Cloud note
 
-If this workspace receives a shared Infisical-synced variable set, make sure repository-unrelated secrets are not attached as Terraform variables to the `github` workspace. Otherwise Terraform fails before import or plan with `Value for undeclared variable` errors.
+Secrets come from OpenBao via HCP workload identity, not an Infisical variable
+set. Do not attach unrelated secrets as Terraform variables to this workspace —
+Terraform fails before import or plan with `Value for undeclared variable` errors.
 
 For this stack, only the following inputs should normally exist in the workspace:
 
-- `GH_TOKEN` as an environment variable
-- optional Terraform variables such as `github_owner` when you want to override defaults
+- `TFC_VAULT_PROVIDER_AUTH` / `TFC_VAULT_ADDR` / `TFC_VAULT_RUN_ROLE` env vars (Vault auth)
+- optional Terraform variables such as `github_owner` or `vault_address` to override defaults

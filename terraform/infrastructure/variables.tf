@@ -1,11 +1,7 @@
-variable "APPLICATION_KEY" {
-  description = "The application key for Backblaze B2"
+variable "vault_address" {
+  description = "OpenBao API address (public, GeoBlock-exempt host so HCP runners reach it)"
   type        = string
-}
-
-variable "APPLICATION_KEY_ID" {
-  description = "The application key id for Backblaze B2"
-  type        = string
+  default     = "https://vault.hauptmann.dev"
 }
 
 variable "bucket_name" {

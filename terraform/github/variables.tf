@@ -1,7 +1,7 @@
-variable "GH_TOKEN" {
-  description = "GitHub token with repository administration permissions."
+variable "vault_address" {
+  description = "OpenBao API address (public, GeoBlock-exempt host so HCP runners reach it)"
   type        = string
-  sensitive   = true
+  default     = "https://vault.hauptmann.dev"
 }
 
 variable "github_owner" {
