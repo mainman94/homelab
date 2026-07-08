@@ -14,6 +14,10 @@ Design: [`docs/superpowers/specs/2026-07-08-openbao-terraform-design.md`](../../
   reviewer JWT are supplied as workspace vars.
 - Policy `eso-reader`: `read`/`list` on `homelab/{data,metadata}/prod/*`.
 - Role `eso`: binds SA `external-secrets` (ns `external-secrets`) → `eso-reader`.
+- JWT auth `tfc/` for HCP Terraform workload identity, with per-workspace roles
+  `tfc-<workspace>` + read-only policies `tfc-<workspace>-reader` scoped to that
+  workspace's single KV path (see [`tfc-vault-auth.tf`](tfc-vault-auth.tf)).
+  Replaces the old Infisical → TFC variable-set sync.
 
 ## Runs
 
@@ -25,6 +29,33 @@ HCP Terraform, org `eggenberg-homelab`, workspace `openbao`, **Agent** execution
 | `VAULT_TOKEN` | env, sensitive | OpenBao admin token |
 | `kubernetes_ca_cert` | terraform, sensitive | cluster CA PEM |
 | `token_reviewer_jwt` | terraform, sensitive | reviewer SA JWT (below) |
+
+## Terraform Cloud consumer auth (JWT/OIDC)
+
+The `github`, `cloudflare`, and `backblaze` stacks read their provider creds
+straight from OpenBao via the `vault` provider — no static `VAULT_TOKEN`, no
+Infisical variable set. Auth is HCP workload identity: set these env vars on
+each consumer workspace (HCP obtains a short-lived `VAULT_TOKEN` per run):
+
+| Env var | Value |
+|---------|-------|
+| `TFC_VAULT_PROVIDER_AUTH` | `true` |
+| `TFC_VAULT_ADDR` | `https://vault.hauptmann.dev` |
+| `TFC_VAULT_RUN_ROLE` | `tfc-github` / `tfc-cloudflare` / `tfc-backblaze` |
+
+Public reachability: `vault.hauptmann.dev` is exempt from the Cloudflare
+GeoBlock (AT-only) rule in `terraform/cloudflare` so HCP runners can reach it;
+OpenBao's own auth is the gate. `oci-free-cloud-k8s` is intentionally left on
+its existing workspace variables (not migrated).
+
+KV keys each stack expects (seed manually, values never touch Terraform):
+
+```sh
+bao kv put homelab/prod/github    PAT=... GHCR_PULL_SECRET=... GHCR_PULL_TOKEN=...
+bao kv patch homelab/prod/cloudflare \
+  TUNNEL_STRASSGANG_ID=... DKIM_HAUPTMANN_DEV=... MY_EMAIL=...   # + API_KEY, ZONE_ID_HAUPTMANN_DEV
+bao kv put homelab/prod/backblaze APPLICATION_KEY_ID=... APPLICATION_KEY=...  # bucket-create capable
+```
 
 ## Bootstrap the reviewer ServiceAccount (one-time, run against the cluster)
 

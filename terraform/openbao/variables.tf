@@ -4,6 +4,18 @@ variable "vault_address" {
   default     = "http://192.168.0.129:30020"
 }
 
+variable "tfc_organization" {
+  description = "HCP Terraform organization that owns the consumer workspaces"
+  type        = string
+  default     = "eggenberg-homelab"
+}
+
+variable "tfc_vault_audience" {
+  description = "Bound audience for HCP Terraform workload-identity tokens (HCP default: vault.workload.identity)"
+  type        = string
+  default     = "vault.workload.identity"
+}
+
 variable "kv_mount" {
   description = "kv-v2 secrets engine mount path"
   type        = string

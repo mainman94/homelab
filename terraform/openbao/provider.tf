@@ -4,7 +4,7 @@ terraform {
     # unmodified. Swap source to "openbao/openbao" later if desired (drop-in).
     vault = {
       source  = "hashicorp/vault"
-      version = "~> 4.0"
+      version = "~> 5.0"
     }
   }
 }
