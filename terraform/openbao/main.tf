@@ -74,6 +74,14 @@ resource "vault_policy" "homelab_prod_writer" {
     path "${var.kv_mount}/metadata/prod/*" {
       capabilities = ["list", "read", "delete"]
     }
+    # Exact-path list so the UI can browse the tree: the prod/* glob above does
+    # not cover listing the mount root or the prod/ dir itself.
+    path "${var.kv_mount}/metadata" {
+      capabilities = ["list"]
+    }
+    path "${var.kv_mount}/metadata/prod" {
+      capabilities = ["list"]
+    }
   EOT
 }
 
