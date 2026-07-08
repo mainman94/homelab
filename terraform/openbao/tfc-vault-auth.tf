@@ -20,24 +20,26 @@ resource "vault_jwt_auth_backend" "tfc" {
 }
 
 locals {
-  # TFC workspace name -> KV source path (prod/<source>) it may read.
+  # TFC workspace name -> KV source paths (prod/<source>) it may read.
   tfc_workspace_sources = {
-    "github"     = "github"
-    "cloudflare" = "cloudflare"
-    "backblaze"  = "backblaze"
+    "github"     = ["github", "openrouter"]
+    "cloudflare" = ["cloudflare"]
+    "backblaze"  = ["backblaze"]
   }
 }
 
-# Read-only policy per workspace, scoped to that workspace's single KV path.
+# Read-only policy per workspace, scoped to that workspace's KV paths.
 resource "vault_policy" "tfc_reader" {
   for_each = local.tfc_workspace_sources
   name     = "tfc-${each.key}-reader"
 
-  policy = <<-EOT
-    path "${var.kv_mount}/data/prod/${each.value}" {
-      capabilities = ["read"]
-    }
-  EOT
+  policy = join("\n", [
+    for source in each.value : <<-EOT
+      path "${var.kv_mount}/data/prod/${source}" {
+        capabilities = ["read"]
+      }
+    EOT
+  ])
 }
 
 # JWT role bound to the specific HCP org + workspace claims -> scoped policy.

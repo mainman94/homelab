@@ -60,11 +60,11 @@ resource "oci_containerengine_node_pool" "k8s_node_pool_1" {
   node_config_details {
     # Nur eine Placement Config pro Pool (oder loop über 1–2 ADs, aber einfach halten)
     placement_configs {
-      availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name  # z. B. AD-1
+      availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name # z. B. AD-1
       subnet_id           = oci_core_subnet.vcn_private_subnet.id
     }
 
-    size = 1  # Kritisch: Nur 1 Node!
+    size = 1 # Kritisch: Nur 1 Node!
   }
 
   node_shape = "VM.Standard.A1.Flex"
@@ -95,7 +95,7 @@ resource "oci_containerengine_node_pool" "k8s_node_pool_2" {
 
   node_config_details {
     placement_configs {
-      availability_domain = data.oci_identity_availability_domains.ads.availability_domains[1].name  # z. B. AD-2
+      availability_domain = data.oci_identity_availability_domains.ads.availability_domains[1].name # z. B. AD-2
       subnet_id           = oci_core_subnet.vcn_private_subnet.id
     }
 
