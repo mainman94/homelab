@@ -8,16 +8,55 @@ Design: [`docs/superpowers/specs/2026-07-08-openbao-terraform-design.md`](../../
 
 ## What this manages
 
-- kv-v2 secrets engine at mount `homelab`.
-
-Auth method / policies / roles for the cluster consumer are **not** managed here
-yet — deferred with the ESO consumer switch (Part B).
+- kv-v2 secrets engine at mount `homelab` + 6 empty secret paths (values manual).
+- Kubernetes auth method (`kubernetes/`) for External Secrets Operator. OpenBao
+  runs on Docker (outside the cluster), so `kubernetes_host`, cluster CA, and a
+  reviewer JWT are supplied as workspace vars.
+- Policy `eso-reader`: `read`/`list` on `homelab/{data,metadata}/prod/*`.
+- Role `eso`: binds SA `external-secrets` (ns `external-secrets`) → `eso-reader`.
 
 ## Runs
 
 HCP Terraform, org `eggenberg-homelab`, workspace `openbao`, **Agent** execution
-(homelab agent pool — reaches the NodePort). Set workspace sensitive env var
-`VAULT_TOKEN` to an OpenBao admin token.
+(homelab agent pool — reaches the NodePort). Workspace vars:
+
+| Var | Kind | Value |
+|-----|------|-------|
+| `VAULT_TOKEN` | env, sensitive | OpenBao admin token |
+| `kubernetes_ca_cert` | terraform, sensitive | cluster CA PEM |
+| `token_reviewer_jwt` | terraform, sensitive | reviewer SA JWT (below) |
+
+## Bootstrap the reviewer ServiceAccount (one-time, run against the cluster)
+
+OpenBao validates cluster JWTs via the TokenReview API using this reviewer SA
+(non-expiring token):
+
+```sh
+kubectl apply -f - <<'EOF'
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: openbao-reviewer, namespace: kube-system }
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: { name: openbao-reviewer }
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: system:auth-delegator }
+subjects: [{ kind: ServiceAccount, name: openbao-reviewer, namespace: kube-system }]
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openbao-reviewer-token
+  namespace: kube-system
+  annotations: { kubernetes.io/service-account.name: openbao-reviewer }
+type: kubernetes.io/service-account-token
+EOF
+
+# token_reviewer_jwt:
+kubectl get secret openbao-reviewer-token -n kube-system -o jsonpath='{.data.token}' | base64 -d
+# kubernetes_ca_cert:
+kubectl config view --raw --minify -o jsonpath='{.clusters[0].cluster.certificate-authority-data}' | base64 -d
+```
 
 ## Secret migration (one-time, manual — values never go through Terraform)
 
@@ -77,14 +116,10 @@ bao policy read eso-reader
 bao read auth/kubernetes/role/eso       # bound SA + policies correct
 ```
 
-## Part B — follow-up (deferred)
+## Cluster side — follow-up (`multi-k8s-infra`)
 
-Not built here. Adds:
-
-- **OpenBao side (this repo):** kubernetes auth method + config
-  (`kubernetes_host`, cluster CA, reviewer JWT — OpenBao runs on Docker, outside
-  the cluster), a read-only policy, and a role binding the ESO ServiceAccount.
-- **Cluster side (`multi-k8s-infra`):** install External Secrets Operator, add a
-  `ClusterSecretStore` using that auth role, rewrite the ~20 secrets from the
-  `InfisicalSecret` CR as `ExternalSecret`s (one `extract` per source path), then
-  remove the Infisical secrets-operator Application.
+Not built here. Install External Secrets Operator (SA `external-secrets`, ns
+`external-secrets`), add a `ClusterSecretStore` using OpenBao auth role `eso`,
+rewrite the ~20 secrets from the `InfisicalSecret` CR as `ExternalSecret`s (one
+`extract` per source path), then remove the Infisical secrets-operator
+Application.

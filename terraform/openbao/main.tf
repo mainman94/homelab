@@ -23,3 +23,41 @@ resource "vault_kv_secret_v2" "prod" {
     ignore_changes = [data_json]
   }
 }
+
+# Kubernetes auth for the External Secrets Operator. OpenBao runs on Docker
+# (outside the cluster), so host/CA/reviewer-JWT are supplied explicitly.
+resource "vault_auth_backend" "kubernetes" {
+  type = "kubernetes"
+}
+
+resource "vault_kubernetes_auth_backend_config" "kubernetes" {
+  backend                = vault_auth_backend.kubernetes.path
+  kubernetes_host        = var.kubernetes_host
+  kubernetes_ca_cert     = var.kubernetes_ca_cert
+  token_reviewer_jwt     = var.token_reviewer_jwt
+  disable_iss_validation = true
+}
+
+# Read-only policy for the ESO consumer.
+resource "vault_policy" "eso_reader" {
+  name = "eso-reader"
+
+  policy = <<-EOT
+    path "${var.kv_mount}/data/prod/*" {
+      capabilities = ["read", "list"]
+    }
+    path "${var.kv_mount}/metadata/prod/*" {
+      capabilities = ["read", "list"]
+    }
+  EOT
+}
+
+# Maps the ESO ServiceAccount to the reader policy.
+resource "vault_kubernetes_auth_backend_role" "eso" {
+  backend                          = vault_auth_backend.kubernetes.path
+  role_name                        = "eso"
+  bound_service_account_names      = [var.eso_sa_name]
+  bound_service_account_namespaces = [var.eso_namespace]
+  token_policies                   = [vault_policy.eso_reader.name]
+  token_ttl                        = 3600
+}

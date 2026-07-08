@@ -9,3 +9,33 @@ variable "kv_mount" {
   type        = string
   default     = "homelab"
 }
+
+variable "kubernetes_host" {
+  description = "Cluster API endpoint reachable from the OpenBao Docker host"
+  type        = string
+  default     = "https://192.168.0.10:6443"
+}
+
+variable "kubernetes_ca_cert" {
+  description = "PEM CA cert for the cluster API"
+  type        = string
+  sensitive   = true
+}
+
+variable "token_reviewer_jwt" {
+  description = "JWT of the openbao-reviewer ServiceAccount (system:auth-delegator), used by OpenBao to call the TokenReview API"
+  type        = string
+  sensitive   = true
+}
+
+variable "eso_sa_name" {
+  description = "Kubernetes ServiceAccount name bound to the reader role (External Secrets Operator)"
+  type        = string
+  default     = "external-secrets"
+}
+
+variable "eso_namespace" {
+  description = "Namespace of the bound ServiceAccount"
+  type        = string
+  default     = "external-secrets"
+}
