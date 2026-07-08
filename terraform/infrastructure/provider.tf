@@ -11,9 +11,11 @@ terraform {
   }
 }
 
-# Vault auth via HCP workload identity — set on the `backblaze` workspace:
+# Vault auth via HCP workload identity — set on the `backblaze` workspace
+# (agent execution, reaches OpenBao on the LAN NodePort):
 #   TFC_VAULT_PROVIDER_AUTH = true
-#   TFC_VAULT_ADDR          = https://vault.hauptmann.dev
+#   TFC_VAULT_ADDR          = http://192.168.0.129:30020
+#   TFC_VAULT_AUTH_PATH     = tfc
 #   TFC_VAULT_RUN_ROLE      = tfc-backblaze
 provider "vault" {
   address = var.vault_address
@@ -22,12 +24,13 @@ provider "vault" {
 # Needs an account/bucket-create-capable key (the *_K8S_BACKUP keys are
 # bucket-scoped and cannot create buckets). Seed prod/backblaze with:
 #   APPLICATION_KEY_ID, APPLICATION_KEY
-data "vault_kv_secret_v2" "backblaze" {
+# Ephemeral: keys are fetched per-run and never written to state.
+ephemeral "vault_kv_secret_v2" "backblaze" {
   mount = "homelab"
   name  = "prod/backblaze"
 }
 
 provider "b2" {
-  application_key    = data.vault_kv_secret_v2.backblaze.data["APPLICATION_KEY"]
-  application_key_id = data.vault_kv_secret_v2.backblaze.data["APPLICATION_KEY_ID"]
+  application_key    = ephemeral.vault_kv_secret_v2.backblaze.data["APPLICATION_KEY"]
+  application_key_id = ephemeral.vault_kv_secret_v2.backblaze.data["APPLICATION_KEY_ID"]
 }

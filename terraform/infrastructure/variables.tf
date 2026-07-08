@@ -1,7 +1,7 @@
 variable "vault_address" {
-  description = "OpenBao API address (public, GeoBlock-exempt host so HCP runners reach it)"
+  description = "OpenBao API address (LAN NodePort — reached from the homelab agent pool)"
   type        = string
-  default     = "https://vault.hauptmann.dev"
+  default     = "http://192.168.0.129:30020"
 }
 
 variable "bucket_name" {
