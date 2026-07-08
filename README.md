@@ -8,7 +8,7 @@ This repository contains Terraform stacks for:
 
 - Cloudflare DNS, mail routing, and tunnel-backed records
 - GitHub repository governance and metadata management
-- Infisical project and secret automation
+- OpenBao (Vault) secret backend structure, auth, and policies
 - Shared infrastructure services such as Backblaze-managed storage wiring
 - OCI free-tier Kubernetes infrastructure
 - Talos bare-metal cluster bootstrapping
@@ -24,7 +24,7 @@ This repository contains Terraform stacks for:
 └── terraform/
     ├── cloudflare/             # Cloudflare DNS, mail, and tunnel configuration
     ├── github/                 # GitHub repositories and branch governance
-    ├── infisical/              # Infisical projects, environments, and secrets
+    ├── openbao/                # OpenBao (Vault) mounts, auth, and policies
     ├── infrastructure/         # Shared infrastructure integrations
     ├── oci-free-cloud-k8s/     # OCI network and Kubernetes resources
     └── talos/                  # Bare-metal Talos cluster bootstrapping
@@ -35,7 +35,7 @@ Shared Terraform modules live in the sibling repository `../homelab-terraform-mo
 ## Prerequisites
 
 - Terraform or OpenTofu
-- Access to the relevant Cloudflare, GitHub, Infisical, Backblaze, and OCI accounts
+- Access to the relevant Cloudflare, GitHub, OpenBao, Backblaze, and OCI accounts
 - Terraform Cloud workspace access for remote runs
 - Required secrets exposed either through Terraform Cloud variables or local environment variables for import workflows
 

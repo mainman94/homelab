@@ -36,7 +36,9 @@ resource "cloudflare_ruleset" "firewall_custom" {
       description = "GeoBlock"
       action      = "block"
       enabled     = true
-      expression  = "(not ip.src.country in {\"AT\"} and http.host strict wildcard r\"*.hauptmann.dev\")"
+      # vault.hauptmann.dev is exempt: TFC runs from outside AT and reads
+      # OpenBao over this host. OpenBao's own token/JWT auth is the real gate.
+      expression  = "(not ip.src.country in {\"AT\"} and http.host strict wildcard r\"*.hauptmann.dev\" and http.host ne \"vault.hauptmann.dev\")"
     }
   ]
 }
