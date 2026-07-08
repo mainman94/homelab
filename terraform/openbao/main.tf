@@ -10,7 +10,7 @@ resource "vault_mount" "kv" {
 # manually (`bao kv put homelab/prod/<source> KEY=...`). ignore_changes means
 # TF never reverts those manual writes.
 locals {
-  secret_sources = ["cloudflare", "github", "argocd", "kargo", "smtp", "backblaze", "docker", "discord"]
+  secret_sources = ["cloudflare", "github", "argocd", "kargo", "smtp", "backblaze", "docker", "discord", "openrouter"]
 }
 
 resource "vault_kv_secret_v2" "prod" {
