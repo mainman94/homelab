@@ -65,3 +65,4 @@ variable "controlplane_nodes" {
     error_message = "controlplane_nodes must contain between 1 and 3 nodes."
   }
 }
+
