@@ -16,6 +16,12 @@ variable "tfc_vault_audience" {
   default     = "vault.workload.identity"
 }
 
+variable "github_actions_vault_audience" {
+  description = "Bound audience for GitHub Actions OIDC tokens (GitHub default: the repo owner URL)"
+  type        = string
+  default     = "https://github.com/mainman94"
+}
+
 variable "kv_mount" {
   description = "kv-v2 secrets engine mount path"
   type        = string
