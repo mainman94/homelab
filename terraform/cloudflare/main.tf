@@ -74,7 +74,6 @@ resource "cloudflare_bot_management" "default" {
   ai_bots_protection      = "block"
   content_bots_protection = "disabled"
   crawler_protection      = "enabled"
-  cf_robots_variant       = "off"
   is_robots_txt_managed   = true
 }
 
