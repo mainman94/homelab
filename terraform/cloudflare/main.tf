@@ -23,6 +23,67 @@ module "hauptmann_dev_cloudflare" {
   ]
 }
 
+resource "cloudflare_zone_setting" "ssl" {
+  zone_id    = var.cloudflare_zone_id
+  setting_id = "ssl"
+  value      = "full"
+}
+
+resource "cloudflare_zone_setting" "always_use_https" {
+  zone_id    = var.cloudflare_zone_id
+  setting_id = "always_use_https"
+  value      = "on"
+}
+
+resource "cloudflare_zone_setting" "min_tls_version" {
+  zone_id    = var.cloudflare_zone_id
+  setting_id = "min_tls_version"
+  value      = "1.2"
+}
+
+resource "cloudflare_zone_setting" "security_level" {
+  zone_id    = var.cloudflare_zone_id
+  setting_id = "security_level"
+  value      = "medium"
+}
+
+resource "cloudflare_zone_setting" "browser_check" {
+  zone_id    = var.cloudflare_zone_id
+  setting_id = "browser_check"
+  value      = "on"
+}
+
+resource "cloudflare_zone_setting" "security_header" {
+  zone_id    = var.cloudflare_zone_id
+  setting_id = "security_header"
+  value = {
+    strict_transport_security = {
+      enabled            = true
+      max_age            = 15552000
+      include_subdomains = true
+      preload            = true
+      nosniff            = true
+    }
+  }
+}
+
+resource "cloudflare_bot_management" "default" {
+  zone_id                 = var.cloudflare_zone_id
+  fight_mode              = true
+  enable_js               = true
+  ai_bots_protection      = "block"
+  content_bots_protection = "disabled"
+  crawler_protection      = "enabled"
+  cf_robots_variant       = "off"
+  is_robots_txt_managed   = true
+}
+
+resource "cloudflare_zone_dnssec" "default" {
+  zone_id             = var.cloudflare_zone_id
+  status              = "active"
+  dnssec_multi_signer = true
+}
+
 resource "cloudflare_ruleset" "firewall_custom" {
   zone_id     = var.cloudflare_zone_id
   name        = "default"
