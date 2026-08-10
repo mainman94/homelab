@@ -24,9 +24,10 @@ resource "cloudflare_zero_trust_access_policy" "owner_only" {
   decision   = "allow"
   name       = "owner-only"
 
-  include = [{
+  # Multiple include rules are OR'd — any listed address gets in.
+  include = [for address in var.zero_trust_owner_emails : {
     email = {
-      email = var.zero_trust_owner_email
+      email = address
     }
   }]
 }

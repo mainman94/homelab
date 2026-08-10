@@ -42,9 +42,9 @@ variable "contact_email" {
   sensitive   = true
 }
 
-variable "zero_trust_owner_email" {
-  description = "Email allowed through Cloudflare Access policies"
-  type        = string
+variable "zero_trust_owner_emails" {
+  description = "Emails allowed through Cloudflare Access policies"
+  type        = list(string)
   sensitive   = true
 }
 
