@@ -22,12 +22,6 @@ variable "cloudflare_account_id" {
   default     = "d726772d8736f94abb1f6b032476b367"
 }
 
-variable "zero_trust_owner_email" {
-  description = "Email allowed through Cloudflare Access policies (owner login via OTP)"
-  type        = string
-  sensitive   = true
-}
-
 variable "cloudflare_dkim_key" {
   description = "DKIM public key TXT value for cf2024-1._domainkey.hauptmann.dev (public)"
   type        = string
@@ -44,6 +38,12 @@ variable "tunnel_strassgang_id" {
 
 variable "contact_email" {
   description = "Destination address for the hello@ email routing rule"
+  type        = string
+  sensitive   = true
+}
+
+variable "zero_trust_owner_email" {
+  description = "Email allowed through Cloudflare Access policies"
   type        = string
   sensitive   = true
 }
