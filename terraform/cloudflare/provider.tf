@@ -27,6 +27,14 @@ ephemeral "vault_kv_secret_v2" "cloudflare" {
   name  = "prod/cloudflare"
 }
 
+# Not ephemeral: the identity provider resource persists client_secret to
+# state regardless (not a write-only attribute), so there's no benefit to
+# fetching it ephemerally.
+data "vault_kv_secret_v2" "pocket_id_access" {
+  mount = "homelab"
+  name  = "prod/pocket-id-cloudflare-access"
+}
+
 provider "cloudflare" {
   api_token = ephemeral.vault_kv_secret_v2.cloudflare.data["API_KEY"]
 }

@@ -16,6 +16,18 @@ variable "cloudflare_zone_id" {
   default     = "3991ce1005b14f7de31157b1b5b7b2ef"
 }
 
+variable "cloudflare_account_id" {
+  description = "Cloudflare account ID (not secret — public identifier)"
+  type        = string
+  default     = "d726772d8736f94abb1f6b032476b367"
+}
+
+variable "zero_trust_owner_email" {
+  description = "Email allowed through Cloudflare Access policies (owner login via OTP)"
+  type        = string
+  sensitive   = true
+}
+
 variable "cloudflare_dkim_key" {
   description = "DKIM public key TXT value for cf2024-1._domainkey.hauptmann.dev (public)"
   type        = string
