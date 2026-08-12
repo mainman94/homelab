@@ -39,6 +39,7 @@ locals {
     radarr = { name = "Radarr", domain = "radarr.hauptmann.dev" }
     bazarr = { name = "Bazarr", domain = "bazarr.hauptmann.dev" }
     umami  = { name = "Umami", domain = "umami.hauptmann.dev" }
+    seerr  = { name = "Seerr", domain = "seerr.hauptmann.dev" }
   }
 
   # Paths that must stay reachable without a login, because the clients are
