@@ -30,7 +30,7 @@ variable "repositories" {
     allow_forking          = optional(bool, true)
     archived               = optional(bool, false)
     archive_on_destroy     = optional(bool, true)
-    vulnerability_alerts   = optional(bool)
+    vulnerability_alerts   = optional(bool, true)
     default_branch         = optional(string, "main")
     rulesets = optional(map(object({
       name             = string
