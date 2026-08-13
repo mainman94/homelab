@@ -10,6 +10,17 @@ machine:
           discard_unpacked_layers = false
 cluster:
   allowSchedulingOnControlPlanes: true
+  # Talos binds both to 127.0.0.1 by default, which leaves Prometheus unable to
+  # scrape them and KubeSchedulerInstanceUnreachable /
+  # KubeControllerManagerInstanceUnreachable firing forever. The secure ports
+  # (10259 / 10257) still require authn + authz, so this exposes authenticated
+  # TLS endpoints on the LAN, not open metrics.
+  controllerManager:
+    extraArgs:
+      bind-address: 0.0.0.0
+  scheduler:
+    extraArgs:
+      bind-address: 0.0.0.0
   network:
     cni:
       name: none
