@@ -40,6 +40,11 @@ locals {
     bazarr = { name = "Bazarr", domain = "bazarr.hauptmann.dev" }
     umami  = { name = "Umami", domain = "umami.hauptmann.dev" }
     seerr  = { name = "Seerr", domain = "seerr.hauptmann.dev" }
+    # No auth of their own — Access is the only thing in front of them.
+    # Kargo and Argo Workflows are deliberately absent: both already
+    # authenticate against Pocket ID themselves.
+    jellystat = { name = "Jellystat", domain = "jellystat.hauptmann.dev" }
+    dockhand  = { name = "Dockhand", domain = "dockhand.hauptmann.dev" }
   }
 
   # Paths that must stay reachable without a login, because the clients are
