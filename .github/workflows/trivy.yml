@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: tfsec
+name: trivy
 
 on:
   push:
@@ -14,8 +14,8 @@ on:
     - cron: "16 13 * * 4"
 
 jobs:
-  tfsec:
-    name: Run tfsec sarif report
+  trivy:
+    name: Run trivy sarif report
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -26,14 +26,16 @@ jobs:
       - name: Clone repo
         uses: actions/checkout@v7
 
-      - name: Run tfsec
-        uses: aquasecurity/tfsec-sarif-action@21ded20e8ca120cd9d3d6ab04ef746477542a608
+      - name: Run trivy config scan
+        uses: aquasecurity/trivy-action@0.32.0
         with:
-          sarif_file: tfsec.sarif
-          config_file: ./.tfsec.yml
+          scan-type: config
+          hide-progress: false
+          format: sarif
+          output: trivy.sarif
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v4
         with:
           # Path to SARIF file relative to the root of the repository
-          sarif_file: tfsec.sarif
+          sarif_file: trivy.sarif
