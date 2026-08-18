@@ -2,6 +2,10 @@ machine:
   time:
     servers:
       - at.pool.ntp.org
+  features:
+    kubePrism:
+      enabled: true
+      port: 7445
   files:
     - op: create
       path: /etc/cri/conf.d/20-customization.part
