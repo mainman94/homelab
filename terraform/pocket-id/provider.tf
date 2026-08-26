@@ -2,7 +2,7 @@ terraform {
   required_providers {
     pocketid = {
       source  = "Trozz/pocketid"
-      version = "~> 0.1"
+      version = "~> 2.0"
     }
     vault = {
       source  = "hashicorp/vault"
