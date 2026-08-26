@@ -147,4 +147,8 @@ resource "pocketid_user" "this" {
   is_admin   = values(local.users_by_username)[tonumber(each.key)].is_admin
   disabled   = values(local.users_by_username)[tonumber(each.key)].disabled
   groups     = [for g in values(local.users_by_username)[tonumber(each.key)].groups : pocketid_group.this[g].id]
+
+  lifecycle {
+    ignore_changes = [email_verified]
+  }
 }
