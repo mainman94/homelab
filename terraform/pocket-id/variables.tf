@@ -7,6 +7,6 @@ variable "vault_address" {
 variable "pocket_id_base_url" {
   description = "Pocket ID instance URL"
   type        = string
-  default     = "http://http://192.168.0.129:30411"
+  default     = "http://192.168.0.129:30411"
 }
 
