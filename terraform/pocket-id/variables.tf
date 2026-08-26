@@ -7,10 +7,6 @@ variable "vault_address" {
 variable "pocket_id_base_url" {
   description = "Pocket ID instance URL"
   type        = string
-  default     = "https://id.hauptmann.dev"
+  default     = "http://http://192.168.0.129:30411"
 }
 
-variable "cloudflare_access_team_domain" {
-  description = "Cloudflare Access team domain (<team>.cloudflareaccess.com), used to build the OIDC callback URL"
-  type        = string
-}
