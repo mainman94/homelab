@@ -25,7 +25,7 @@ locals {
     "github"     = ["github", "openrouter"]
     "cloudflare" = ["cloudflare", "pocket-id-cloudflare-access"]
     "backblaze"  = ["backblaze"]
-    "pocket-id"  = ["pocket-id"]
+    "pocket-id"  = ["pocket-id", "pocket-id-users"]
   }
 }
 
