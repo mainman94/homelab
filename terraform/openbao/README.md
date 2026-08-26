@@ -41,7 +41,7 @@ each consumer workspace (HCP obtains a short-lived `VAULT_TOKEN` per run):
 |---------|-------|
 | `TFC_VAULT_PROVIDER_AUTH` | `true` |
 | `TFC_VAULT_ADDR` | `https://vault.hauptmann.dev` |
-| `TFC_VAULT_RUN_ROLE` | `tfc-github` / `tfc-cloudflare` / `tfc-backblaze` |
+| `TFC_VAULT_RUN_ROLE` | `tfc-github` / `tfc-cloudflare` / `tfc-backblaze` / `tfc-pocket-id` |
 
 Public reachability: `vault.hauptmann.dev` is exempt from the Cloudflare
 GeoBlock (AT-only) rule in `terraform/cloudflare` so HCP runners can reach it;
@@ -105,6 +105,9 @@ bao kv put homelab/prod/cloudflare \
   CLOUDFLARE_TUNNEL_EGGENBERG_ID=... \
   CLOUDFLARE_TUNNEL_EGGENBERG_SECRET=... \
   CLOUDFLARE_TUNNEL_EGGENBERG_CERTIFICATE=...
+
+bao kv put homelab/prod/pocket-id \
+  API_TOKEN=...
 
 bao kv put homelab/prod/github \
   ARGOCD_IMAGER_UPDATER_GIT_USERNAME=... \
