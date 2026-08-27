@@ -23,7 +23,7 @@ locals {
   # TFC workspace name -> KV source paths (prod/<source>) it may read.
   tfc_workspace_sources = {
     "github"     = ["github", "openrouter"]
-    "cloudflare" = ["cloudflare", "pocket-id-cloudflare-access"]
+    "cloudflare" = ["cloudflare", "pocket-id-cloudflare-access", "network"]
     "backblaze"  = ["backblaze"]
     "pocket-id"  = ["pocket-id", "pocket-id-users"]
   }

@@ -36,12 +36,24 @@ The provider and module currently require these inputs:
 - `cloudflare_domain`
 - `cloudflare_dkim_key`
 - `MY_EMAIL`
-- `public_ip` — sensitive, no default; set it as a workspace variable
 
 Optional inputs with defaults include:
 
 - `a_records_hauptmann_dev`
 - `cname_backend_records`
+
+## Vault-sourced values
+
+Some inputs are read straight from OpenBao instead of workspace variables:
+
+| Value | KV path | Key |
+|-------|---------|-----|
+| Cloudflare API token | `homelab/prod/cloudflare` | `API_KEY` (ephemeral, never in state) |
+| Cloudflare Access IdP creds | `homelab/prod/pocket-id-cloudflare-access` | `CLIENT_ID` / `CLIENT_SECRET` |
+| Public IP for the A records | `homelab/prod/network` | `PUBLIC_IP` |
+
+The `cloudflare` workspace's `tfc-cloudflare` role grants read access to exactly
+these paths; see [`../openbao/tfc-vault-auth.tf`](../openbao/tfc-vault-auth.tf).
 
 ## GeoBlock rule
 
