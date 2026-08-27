@@ -11,7 +11,7 @@ The current configuration manages:
 - an SPF record
 - a DKIM record
 - an email routing rule for the `hello@hauptmann.dev` local part
-- a custom WAF skip rule for Vault API traffic (`vault.hauptmann.dev/v1/*`)
+- a custom WAF ruleset (`http_request_firewall_custom`) with a GeoBlock rule
 
 ## Module versioning
 
@@ -42,27 +42,16 @@ Optional inputs with defaults include:
 
 - `a_records_hauptmann_dev`
 - `cname_backend_records`
-- `vault_api_skip_rule_enabled`
-- `vault_api_hostname`
-- `vault_api_allow_cidrs`
 
-## Vault API Whitelisting While Proxied
+## GeoBlock rule
 
-This stack configures a Cloudflare custom ruleset in phase `http_request_firewall_custom` that skips challenge/security phases for Vault API traffic:
+The `cloudflare_ruleset.firewall_custom` resource in [main.tf](main.tf) manages the
+zone's `http_request_firewall_custom` phase. It currently holds a single rule that
+blocks requests to `*.hauptmann.dev` whose source country is not `AT`.
 
-- host: `vault.hauptmann.dev` (configurable via `vault_api_hostname`)
-- path: `/v1/*`
-- optional source filter: `ip.src in { ... }` via `vault_api_allow_cidrs`
-
-If you want strict allowlisting, set fixed egress CIDRs (for local runs or self-hosted agents), for example:
-
-```hcl
-vault_api_allow_cidrs = [
-  "203.0.113.10/32",
-]
-```
-
-If `vault_api_allow_cidrs` is empty (default), the skip rule applies to any source hitting the configured host/path.
+The rule list is managed exhaustively: a rule removed from `main.tf` is removed from
+the zone on the next apply, so add new custom rules there rather than in the
+Cloudflare dashboard.
 
 ## Usage
 
