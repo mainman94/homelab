@@ -107,7 +107,6 @@ locals {
       groups        = ["homelab"]
     }
     dockhand = {
-      client_id     = "d412668e-6374-4e2b-8f08-88deb449eeef"
       name          = "Dockhand"
       callback_urls = ["https://dockhand.hauptmann.dev/api/auth/oidc/callback"]
       launch_url    = "https://dockhand.hauptmann.dev"
@@ -119,7 +118,7 @@ locals {
 resource "pocketid_client" "this" {
   for_each = local.clients
 
-  client_id            = each.value.client_id
+  client_id            = try(each.value.client_id, null)
   name                 = try(each.value.name, each.key)
   callback_urls        = each.value.callback_urls
   logout_callback_urls = try(each.value.logout_callback_urls, [])
