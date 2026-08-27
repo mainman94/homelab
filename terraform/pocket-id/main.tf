@@ -106,6 +106,13 @@ locals {
       launch_url    = "https://grafana.hauptmann.dev"
       groups        = ["homelab"]
     }
+    dockhand = {
+      client_id     = "d412668e-6374-4e2b-8f08-88deb449eeef"
+      name          = "Dockhand"
+      callback_urls = ["https://dockhand.hauptmann.dev/api/auth/oidc/callback"]
+      launch_url    = "https://dockhand.hauptmann.dev"
+      groups        = ["homelab"]
+    }
   }
 }
 
