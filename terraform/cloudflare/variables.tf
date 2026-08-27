@@ -49,9 +49,9 @@ variable "zero_trust_owner_emails" {
 }
 
 variable "public_ip" {
-  description = "The public IP address for A records."
+  description = "Public IP address the hauptmann.dev A records point to"
   type        = string
-  default     = "84.115.110.237"
+  sensitive   = true
 }
 
 variable "a_records_hauptmann_dev" {

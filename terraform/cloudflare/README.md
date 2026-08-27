@@ -36,10 +36,10 @@ The provider and module currently require these inputs:
 - `cloudflare_domain`
 - `cloudflare_dkim_key`
 - `MY_EMAIL`
+- `public_ip` — sensitive, no default; set it as a workspace variable
 
 Optional inputs with defaults include:
 
-- `public_ip`
 - `a_records_hauptmann_dev`
 - `cname_backend_records`
 - `vault_api_skip_rule_enabled`
