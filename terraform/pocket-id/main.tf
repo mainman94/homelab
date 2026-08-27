@@ -110,6 +110,8 @@ locals {
       name          = "Dockhand"
       callback_urls = ["https://dockhand.hauptmann.dev/api/auth/oidc/callback"]
       launch_url    = "https://dockhand.hauptmann.dev"
+      is_public     = true
+      pkce_enabled  = true
       groups        = ["homelab"]
     }
   }
