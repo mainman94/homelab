@@ -48,12 +48,6 @@ variable "zero_trust_owner_emails" {
   sensitive   = true
 }
 
-variable "public_ip" {
-  description = "The public IP address for A records."
-  type        = string
-  default     = "84.115.110.237"
-}
-
 variable "a_records_hauptmann_dev" {
   description = "A list of a records"
   type        = set(string)

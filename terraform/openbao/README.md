@@ -8,7 +8,7 @@ Design: [`docs/superpowers/specs/2026-07-08-openbao-terraform-design.md`](../../
 
 ## What this manages
 
-- kv-v2 secrets engine at mount `homelab` + 6 empty secret paths (values manual).
+- kv-v2 secrets engine at mount `homelab` + one empty secret path per source (values manual).
 - Kubernetes auth method (`kubernetes/`) for External Secrets Operator. OpenBao
   runs on Docker (outside the cluster), so `kubernetes_host`, cluster CA, and a
   reviewer JWT are supplied as workspace vars.
@@ -55,6 +55,7 @@ bao kv put homelab/prod/github    PAT=... GHCR_PULL_SECRET=... GHCR_PULL_TOKEN=.
 bao kv patch homelab/prod/cloudflare \
   TUNNEL_STRASSGANG_ID=... DKIM_HAUPTMANN_DEV=... MY_EMAIL=...   # + API_KEY, ZONE_ID_HAUPTMANN_DEV
 bao kv put homelab/prod/backblaze APPLICATION_KEY_ID=... APPLICATION_KEY=...  # bucket-create capable
+bao kv put homelab/prod/network   PUBLIC_IP=...                                # A records in terraform/cloudflare
 ```
 
 ## Bootstrap the reviewer ServiceAccount (one-time, run against the cluster)

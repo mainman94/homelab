@@ -35,6 +35,14 @@ data "vault_kv_secret_v2" "pocket_id_access" {
   name  = "prod/pocket-id-cloudflare-access"
 }
 
+# Not ephemeral: the IP ends up in state as the A-record content anyway. Kept in
+# its own KV path rather than `prod/cloudflare` so reading it as a data source
+# does not persist that path's API token to state.
+data "vault_kv_secret_v2" "network" {
+  mount = "homelab"
+  name  = "prod/network"
+}
+
 provider "cloudflare" {
   api_token = ephemeral.vault_kv_secret_v2.cloudflare.data["API_KEY"]
 }

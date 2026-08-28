@@ -3,7 +3,7 @@ module "hauptmann_dev_cloudflare" {
 
   zone_id   = var.cloudflare_zone_id
   domain    = var.cloudflare_domain
-  public_ip = var.public_ip
+  public_ip = data.vault_kv_secret_v2.network.data["PUBLIC_IP"]
 
   a_records = var.a_records_hauptmann_dev
 
