@@ -16,73 +16,25 @@ When the shared GitHub module changes, use this release flow:
 
 ## Current repository mapping
 
-- Owner: `mainman94`
-- Repository: `homelab`
-- Visibility: `public`
-- Issues: enabled
-- Projects: disabled
-- Wiki: disabled
-- Homepage: unset
-- Description: unset
-- Default branch: `main`
-- Rulesets: `default-branch-protection`
-- Repository: `homelab-terraform-modules`
-- Visibility: `public`
-- Issues: enabled
-- Projects: enabled
-- Wiki: enabled
-- Homepage: unset
-- Description: unset
-- Default branch: `main`
-- Rulesets: `default-branch-protection`
-- Repository: `multi-k8s-infra`
-- Visibility: `public`
-- Issues: enabled
-- Projects: enabled
-- Wiki: enabled
-- Homepage: unset
-- Description: unset
-- Default branch: `main`
-- Repository: `portfolio`
-- Visibility: `private`
-- Issues: enabled
-- Projects: enabled
-- Wiki: disabled
-- Homepage: unset
-- Description: `Personal Portfolio Page`
-- Default branch: `main`
-- Repository: `portfolio-performance`
-- Visibility: `private`
-- Issues: enabled
-- Projects: enabled
-- Wiki: disabled
-- Homepage: unset
-- Description: `Private portfolio performance files`
-- Default branch: `main`
-- Repository: `pp-portfolio-classifier`
-- Visibility: `public`
-- Issues: enabled
-- Projects: disabled
-- Wiki: disabled
-- Homepage: unset
-- Description: `Portfolio classifier rewrite in Go`
-- Default branch: `main`
-- Repository: `dev-config`
-- Visibility: `public`
-- Issues: enabled
-- Projects: enabled
-- Wiki: enabled
-- Homepage: unset
-- Description: unset
-- Default branch: `main`
-- Repository: `docker-stack`
-- Visibility: `public`
-- Issues: enabled
-- Projects: disabled
-- Wiki: disabled
-- Homepage: unset
-- Description: unset
-- Default branch: `main`
+Source of truth is `var.repositories` in [variables.tf](variables.tf); this table
+only lists what differs per repository.
+
+| Repository | Visibility | Ruleset | Notes |
+|------------|-----------|---------|-------|
+| `homelab` | public | default-branch-protection (+ linear history) | |
+| `homelab-terraform-modules` | public | default-branch-protection (+ linear history) | projects + wiki on |
+| `multi-k8s-infra` | public | default-branch-protection | auto-merge for Renovate, so no linear history |
+| `pp-portfolio-classifier` | public | default-branch-protection | |
+| `dev-config` | public | default-branch-protection | projects + wiki on |
+| `docker-stack` | public | default-branch-protection | |
+| `mainman94` | public | — | profile README repository |
+| `portfolio` | private | — | rulesets need GitHub Pro on private repos |
+| `portfolio-performance` | private | — | rulesets need GitHub Pro on private repos |
+| `stoicful` | private | — | rulesets need GitHub Pro on private repos |
+| `beartainer` | public | — | archived; GitHub rejects writes, values mirror the repository |
+
+Every repository owned by `mainman94` is managed here — there is no
+intentionally unmanaged one.
 
 ## Usage
 
@@ -114,6 +66,15 @@ terraform import 'module.repositories["dev_config"].github_repository.this' dev-
 terraform import 'module.repositories["dev_config"].github_branch_default.this[0]' dev-config
 terraform import 'module.repositories["docker_stack"].github_repository.this' docker-stack
 terraform import 'module.repositories["docker_stack"].github_branch_default.this[0]' docker-stack
+terraform import 'module.repositories["profile"].github_repository.this' mainman94
+terraform import 'module.repositories["profile"].github_branch_default.this[0]' mainman94
+terraform import 'module.repositories["stoicful"].github_repository.this' stoicful
+terraform import 'module.repositories["stoicful"].github_branch_default.this[0]' stoicful
+terraform import 'module.repositories["beartainer"].github_repository.this' beartainer
+terraform import 'module.repositories["beartainer"].github_branch_default.this[0]' beartainer
+
+# ruleset that was created in the UI as "Branch-Rule"; apply renames it
+terraform import 'module.repositories["multi_k8s_infra"].github_repository_ruleset.this["default_branch"]' multi-k8s-infra:11212352
 ```
 
 If you already imported these repositories under the older module names, Terraform will migrate the state automatically via `moved` blocks in this root module.
@@ -122,10 +83,11 @@ If you already imported these repositories under the older module names, Terrafo
 
 ## Security settings
 
-`secret_scanning` and `secret_scanning_push_protection` default to enabled for
-every `public` repository and are left untouched on private ones — secret
-scanning needs GitHub Advanced Security there. Set either flag on a repository
-in `var.repositories` to override.
+`secret_scanning`, `secret_scanning_push_protection`, and
+`dependabot_security_updates` default to enabled for every `public` repository
+and are left untouched on private ones (secret scanning needs GitHub Advanced
+Security there) and on archived ones (GitHub serves them read-only). Set any of
+the flags on a repository in `var.repositories` to override.
 
 Not managed here: `pull_request_creation_policy` (restricting who may open pull
 requests). The GitHub provider has no attribute for it, so it is set through the

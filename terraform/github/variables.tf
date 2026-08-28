@@ -25,7 +25,7 @@ variable "repositories" {
     allow_squash_merge              = optional(bool)
     allow_rebase_merge              = optional(bool)
     allow_auto_merge                = optional(bool)
-    delete_branch_on_merge          = optional(bool)
+    delete_branch_on_merge          = optional(bool, true)
     allow_update_branch             = optional(bool)
     allow_forking                   = optional(bool, true)
     archived                        = optional(bool, false)
@@ -33,6 +33,7 @@ variable "repositories" {
     vulnerability_alerts            = optional(bool, true)
     secret_scanning                 = optional(bool)
     secret_scanning_push_protection = optional(bool)
+    dependabot_security_updates     = optional(bool)
     default_branch                  = optional(string, "main")
     rulesets = optional(map(object({
       name             = string
@@ -143,7 +144,9 @@ variable "repositories" {
 
   default = {
     homelab = {
-      name = "homelab"
+      name        = "homelab"
+      description = "Terraform, Ansible and OpenBao configuration for the Eggenberg homelab"
+      topics      = ["terraform", "opentofu", "homelab", "openbao", "talos"]
 
       has_projects = false
       has_wiki     = false
@@ -160,7 +163,9 @@ variable "repositories" {
       }
     }
     homelab_terraform_modules = {
-      name = "homelab-terraform-modules"
+      name        = "homelab-terraform-modules"
+      description = "Shared Terraform modules consumed by the homelab stacks"
+      topics      = ["terraform", "opentofu", "terraform-modules", "homelab"]
 
       has_projects = true
       has_wiki     = true
@@ -177,13 +182,27 @@ variable "repositories" {
       }
     }
     multi_k8s_infra = {
-      name = "multi-k8s-infra"
+      name        = "multi-k8s-infra"
+      description = "GitOps configuration for the Talos Kubernetes cluster"
+      topics      = ["kubernetes", "gitops", "argocd", "talos", "cilium"]
 
       has_projects = false
       has_wiki     = false
 
       allow_auto_merge    = true
       allow_update_branch = true
+
+      # Imported from the ruleset that was created in the UI as "Branch-Rule".
+      # Deliberately without required_linear_history: Renovate auto-merges here.
+      rulesets = {
+        default_branch = {
+          name = "default-branch-protection"
+          rules = {
+            deletion         = true
+            non_fast_forward = true
+          }
+        }
+      }
     }
     portfolio = {
       name        = "portfolio"
@@ -207,16 +226,75 @@ variable "repositories" {
 
       has_projects = false
       has_wiki     = false
+
+      rulesets = {
+        default_branch = {
+          name = "default-branch-protection"
+          rules = {
+            deletion         = true
+            non_fast_forward = true
+          }
+        }
+      }
     }
     dev_config = {
-      name       = "dev-config"
-      visibility = "public"
+      name        = "dev-config"
+      description = "Personal development environment configuration"
+      visibility  = "public"
+
+      has_projects = true
+      has_wiki     = true
+
+      rulesets = {
+        default_branch = {
+          name = "default-branch-protection"
+          rules = {
+            deletion         = true
+            non_fast_forward = true
+          }
+        }
+      }
+    }
+    docker_stack = {
+      name        = "docker-stack"
+      description = "Docker Compose services running on the homelab hosts"
+      topics      = ["docker", "docker-compose", "homelab", "self-hosted"]
+
+      rulesets = {
+        default_branch = {
+          name = "default-branch-protection"
+          rules = {
+            deletion         = true
+            non_fast_forward = true
+          }
+        }
+      }
+    }
+    profile = {
+      name = "mainman94"
 
       has_projects = true
       has_wiki     = true
     }
-    docker_stack = {
-      name = "docker-stack"
+    stoicful = {
+      name       = "stoicful"
+      visibility = "private"
+
+      has_projects = true
+      has_wiki     = false
+    }
+    # Archived: GitHub rejects writes to archived repositories, so every value
+    # here mirrors the repository as it stands and the security toggles below
+    # stay untouched.
+    beartainer = {
+      name     = "beartainer"
+      archived = true
+
+      has_projects = true
+      has_wiki     = true
+
+      delete_branch_on_merge = false
+      vulnerability_alerts   = false
     }
   }
 }
