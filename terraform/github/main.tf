@@ -1,6 +1,6 @@
 module "repositories" {
   for_each = var.repositories
-  source   = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.6"
+  source   = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.7"
 
   name         = each.value.name
   description  = try(each.value.description, null)
@@ -22,6 +22,10 @@ module "repositories" {
   archived             = each.value.archived
   archive_on_destroy   = each.value.archive_on_destroy
   vulnerability_alerts = try(each.value.vulnerability_alerts, null)
-  default_branch       = each.value.default_branch
-  rulesets             = try(each.value.rulesets, {})
+  # Secret scanning is free on public repos, but needs GHAS on private ones, so
+  # private repos stay untouched unless they set the flags explicitly.
+  secret_scanning                 = each.value.secret_scanning != null ? each.value.secret_scanning : (each.value.visibility == "public" ? true : null)
+  secret_scanning_push_protection = each.value.secret_scanning_push_protection != null ? each.value.secret_scanning_push_protection : (each.value.visibility == "public" ? true : null)
+  default_branch                  = each.value.default_branch
+  rulesets                        = try(each.value.rulesets, {})
 }

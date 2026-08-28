@@ -12,6 +12,10 @@ The current configuration manages:
 - a DKIM record
 - an email routing rule for the `hello@hauptmann.dev` local part
 - a custom WAF ruleset (`http_request_firewall_custom`) with a GeoBlock rule
+- zone settings: SSL `full`, always-use-HTTPS, min TLS 1.2, security level, browser check, HSTS
+- bot management (fight mode, AI-bot block, crawler protection, managed `robots.txt`)
+- DNSSEC for the zone
+- Zero Trust Access: the Pocket ID identity provider, an owner-only policy, a public bypass policy, and the applications they protect (see [zero_trust.tf](zero_trust.tf))
 
 ## Module versioning
 
@@ -36,6 +40,7 @@ The provider and module currently require these inputs:
 - `cloudflare_domain`
 - `cloudflare_dkim_key`
 - `MY_EMAIL`
+- `zero_trust_owner_emails` — sensitive, no default
 
 Optional inputs with defaults include:
 
