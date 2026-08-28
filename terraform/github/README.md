@@ -21,12 +21,12 @@ only lists what differs per repository.
 
 | Repository | Visibility | Ruleset | Notes |
 |------------|-----------|---------|-------|
-| `homelab` | public | default-branch-protection (+ linear history) | |
-| `homelab-terraform-modules` | public | default-branch-protection (+ linear history) | projects + wiki on |
-| `multi-k8s-infra` | public | default-branch-protection | auto-merge for Renovate, so no linear history |
+| `homelab` | public | default-branch-protection (+ linear history, PR required) | |
+| `homelab-terraform-modules` | public | default-branch-protection (+ linear history, PR required) | projects + wiki on |
+| `multi-k8s-infra` | public | default-branch-protection (+ PR required) | auto-merge for Renovate, so no linear history |
 | `pp-portfolio-classifier` | public | default-branch-protection | |
 | `dev-config` | public | default-branch-protection | projects + wiki on |
-| `docker-stack` | public | default-branch-protection | |
+| `docker-stack` | public | default-branch-protection (+ PR required) | |
 | `mainman94` | public | — | profile README repository |
 | `portfolio` | private | — | rulesets need GitHub Pro on private repos |
 | `portfolio-performance` | private | — | rulesets need GitHub Pro on private repos |
@@ -94,6 +94,24 @@ gh api -X PATCH repos/mainman94/<repo> -f pull_request_creation_policy=collabora
 ```
 
 Currently `collaborators_only` on `multi-k8s-infra` and `docker-stack`, `all` elsewhere.
+
+## Pull requests
+
+`homelab`, `homelab-terraform-modules`, `multi-k8s-infra`, and `docker-stack`
+require a pull request into `main`. For the first three a push there triggers a
+real apply or an ArgoCD sync, so the rule puts the TFC plan and the CI checks in
+front of that — it is not about review. Consequently
+`required_approving_review_count` is 0: GitHub refuses self-approval, so a
+higher count would lock the only owner out.
+
+`dev-config` and `pp-portfolio-classifier` stay without the rule. Private
+repositories cannot carry rulesets on this plan at all.
+
+To merge without leaving the terminal:
+
+```bash
+gh pr create --fill && gh pr merge --squash
+```
 
 ## Configuration model
 

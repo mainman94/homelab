@@ -158,6 +158,15 @@ variable "repositories" {
             deletion                = true
             non_fast_forward        = true
             required_linear_history = true
+            pull_request = {
+              # Zero approvals on purpose: GitHub does not let you approve your
+              # own pull request, so anything higher locks a solo owner out.
+              # The point of the rule is that the TFC plan and Trivy run before
+              # a change reaches main, not review.
+              required_approving_review_count   = 0
+              required_review_thread_resolution = true
+              allowed_merge_methods             = ["squash", "rebase"]
+            }
           }
         }
       }
@@ -177,6 +186,15 @@ variable "repositories" {
             deletion                = true
             non_fast_forward        = true
             required_linear_history = true
+            pull_request = {
+              # Zero approvals on purpose: GitHub does not let you approve your
+              # own pull request, so anything higher locks a solo owner out.
+              # The point of the rule is that the TFC plan and Trivy run before
+              # a change reaches main, not review.
+              required_approving_review_count   = 0
+              required_review_thread_resolution = true
+              allowed_merge_methods             = ["squash", "rebase"]
+            }
           }
         }
       }
@@ -193,13 +211,18 @@ variable "repositories" {
       allow_update_branch = true
 
       # Imported from the ruleset that was created in the UI as "Branch-Rule".
-      # Deliberately without required_linear_history: Renovate auto-merges here.
+      # Deliberately without required_linear_history, and with every merge
+      # method left allowed: Renovate auto-merges here.
       rulesets = {
         default_branch = {
           name = "default-branch-protection"
           rules = {
             deletion         = true
             non_fast_forward = true
+            pull_request = {
+              required_approving_review_count   = 0
+              required_review_thread_resolution = true
+            }
           }
         }
       }
@@ -260,12 +283,17 @@ variable "repositories" {
       description = "Docker Compose services running on the homelab hosts"
       topics      = ["docker", "docker-compose", "homelab", "self-hosted"]
 
+      # Every merge method stays allowed: Renovate auto-merges patch updates here.
       rulesets = {
         default_branch = {
           name = "default-branch-protection"
           rules = {
             deletion         = true
             non_fast_forward = true
+            pull_request = {
+              required_approving_review_count   = 0
+              required_review_thread_resolution = true
+            }
           }
         }
       }
