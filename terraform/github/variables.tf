@@ -283,12 +283,17 @@ variable "repositories" {
       description = "Docker Compose services running on the homelab hosts"
       topics      = ["docker", "docker-compose", "homelab", "self-hosted"]
 
+      # Every merge method stays allowed: Renovate auto-merges patch updates here.
       rulesets = {
         default_branch = {
           name = "default-branch-protection"
           rules = {
             deletion         = true
             non_fast_forward = true
+            pull_request = {
+              required_approving_review_count   = 0
+              required_review_thread_resolution = true
+            }
           }
         }
       }

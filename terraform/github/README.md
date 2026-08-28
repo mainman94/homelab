@@ -26,7 +26,7 @@ only lists what differs per repository.
 | `multi-k8s-infra` | public | default-branch-protection (+ PR required) | auto-merge for Renovate, so no linear history |
 | `pp-portfolio-classifier` | public | default-branch-protection | |
 | `dev-config` | public | default-branch-protection | projects + wiki on |
-| `docker-stack` | public | default-branch-protection | |
+| `docker-stack` | public | default-branch-protection (+ PR required) | |
 | `mainman94` | public | — | profile README repository |
 | `portfolio` | private | — | rulesets need GitHub Pro on private repos |
 | `portfolio-performance` | private | — | rulesets need GitHub Pro on private repos |
@@ -95,17 +95,17 @@ gh api -X PATCH repos/mainman94/<repo> -f pull_request_creation_policy=collabora
 
 Currently `collaborators_only` on `multi-k8s-infra` and `docker-stack`, `all` elsewhere.
 
-## Pull requests on the applying repositories
+## Pull requests
 
-`homelab`, `homelab-terraform-modules`, and `multi-k8s-infra` require a pull
-request into `main`. A push there triggers a real apply or an ArgoCD sync, so
-the rule exists to put the TFC plan and the CI checks in front of that — not to
-add review. Consequently `required_approving_review_count` is 0: GitHub refuses
-self-approval, so a higher count would lock the only owner out.
+`homelab`, `homelab-terraform-modules`, `multi-k8s-infra`, and `docker-stack`
+require a pull request into `main`. For the first three a push there triggers a
+real apply or an ArgoCD sync, so the rule puts the TFC plan and the CI checks in
+front of that — it is not about review. Consequently
+`required_approving_review_count` is 0: GitHub refuses self-approval, so a
+higher count would lock the only owner out.
 
-`dev-config`, `docker-stack`, and `pp-portfolio-classifier` deliberately stay
-without the rule; nothing applies from them. Private repositories cannot carry
-rulesets on this plan at all.
+`dev-config` and `pp-portfolio-classifier` stay without the rule. Private
+repositories cannot carry rulesets on this plan at all.
 
 To merge without leaving the terminal:
 
