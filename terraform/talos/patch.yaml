@@ -25,6 +25,13 @@ cluster:
   scheduler:
     extraArgs:
       bind-address: 0.0.0.0
+  # Same story for etcd: without a metrics listener the kube-etcd Service in
+  # kube-prometheus-stack never gets endpoints and the etcd dashboard stays
+  # empty. 2381 is the metrics-only listener — read-only, no client certs, and
+  # separate from the client (2379) and peer (2380) ports that stay mTLS.
+  etcd:
+    extraArgs:
+      listen-metrics-urls: http://0.0.0.0:2381
   network:
     cni:
       name: none
