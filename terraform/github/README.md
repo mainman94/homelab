@@ -66,16 +66,12 @@ terraform import 'module.repositories["dev_config"].github_repository.this' dev-
 terraform import 'module.repositories["dev_config"].github_branch_default.this[0]' dev-config
 terraform import 'module.repositories["docker_stack"].github_repository.this' docker-stack
 terraform import 'module.repositories["docker_stack"].github_branch_default.this[0]' docker-stack
-terraform import 'module.repositories["profile"].github_repository.this' mainman94
-terraform import 'module.repositories["profile"].github_branch_default.this[0]' mainman94
-terraform import 'module.repositories["stoicful"].github_repository.this' stoicful
-terraform import 'module.repositories["stoicful"].github_branch_default.this[0]' stoicful
-terraform import 'module.repositories["beartainer"].github_repository.this' beartainer
-terraform import 'module.repositories["beartainer"].github_branch_default.this[0]' beartainer
-
-# ruleset that was created in the UI as "Branch-Rule"; apply renames it
-terraform import 'module.repositories["multi_k8s_infra"].github_repository_ruleset.this["default_branch"]' multi-k8s-infra:11212352
 ```
+
+The four newest adoptions — `mainman94`, `stoicful`, `beartainer`, and the
+ruleset that was created in the UI on `multi-k8s-infra` — are handled by the
+`import` blocks in [imports.tf](imports.tf) instead, so they happen during the
+normal plan/apply. Delete that file once the apply has gone through.
 
 If you already imported these repositories under the older module names, Terraform will migrate the state automatically via `moved` blocks in this root module.
 
