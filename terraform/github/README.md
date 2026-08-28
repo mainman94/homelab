@@ -120,6 +120,23 @@ If you already imported these repositories under the older module names, Terrafo
 
 5. Run `terraform plan` and adjust any optional repository settings that should be managed explicitly.
 
+## Security settings
+
+`secret_scanning` and `secret_scanning_push_protection` default to enabled for
+every `public` repository and are left untouched on private ones — secret
+scanning needs GitHub Advanced Security there. Set either flag on a repository
+in `var.repositories` to override.
+
+Not managed here: `pull_request_creation_policy` (restricting who may open pull
+requests). The GitHub provider has no attribute for it, so it is set through the
+REST API and drifts silently if changed in the UI:
+
+```bash
+gh api -X PATCH repos/mainman94/<repo> -f pull_request_creation_policy=collaborators_only
+```
+
+Currently `collaborators_only` on `multi-k8s-infra` and `docker-stack`, `all` elsewhere.
+
 ## Configuration model
 
 Repositories are configured through the `repositories` variable as a `map(object(...))`, keyed by stable Terraform identifiers. This keeps resource addresses stable while allowing repository settings to scale without duplicating dozens of root-module variables.
