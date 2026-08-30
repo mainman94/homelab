@@ -1,12 +1,10 @@
-# Groups. Not sensitive — safe to declare in git. opencloud_spaceadmins also
-# carries a custom claim (opencloud_role=opencloudSpaceAdmin) set by hand in
-# the UI — provider 0.1.8 has no custom_claims argument on pocketid_group, so
-# that part stays manual.
+# Groups. Not sensitive — safe to declare in git. opencloud_role custom claims
+# drive opencloud's PROXY_ROLE_ASSIGNMENT_OIDC_CLAIM role mapping.
 locals {
   groups = {
     homelab               = { friendly_name = "Homelab" }
     admin                 = { friendly_name = "Admin" }
-    opencloud_spaceadmins = { friendly_name = "opencloud_spaceadmins" }
+    opencloud_spaceadmins = { friendly_name = "opencloud_spaceadmins", custom_claims = { opencloud_role = "opencloudSpaceAdmin" } }
   }
 }
 
@@ -15,6 +13,7 @@ resource "pocketid_group" "this" {
 
   name          = each.key
   friendly_name = each.value.friendly_name
+  custom_claims = try(each.value.custom_claims, null)
 }
 
 # OIDC clients for every app that authenticates against Pocket ID. Not
