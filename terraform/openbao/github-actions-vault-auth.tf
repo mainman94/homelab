@@ -32,7 +32,7 @@ locals {
     "docker-strapi" = {
       repository = "mainman94/docker-strapi"
       ref        = "refs/heads/main"
-      sources    = ["docker"]
+      sources    = ["docker", "github"]
     }
   }
 }
