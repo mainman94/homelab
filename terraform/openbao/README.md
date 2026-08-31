@@ -24,10 +24,10 @@ Design: [`docs/superpowers/specs/2026-07-08-openbao-terraform-design.md`](../../
 HCP Terraform, org `eggenberg-homelab`, workspace `openbao`, **Agent** execution
 (homelab agent pool — reaches the NodePort). Workspace vars:
 
-| Var | Kind | Value |
-|-----|------|-------|
-| `VAULT_TOKEN` | env, sensitive | OpenBao admin token |
-| `kubernetes_ca_cert` | terraform, sensitive | cluster CA PEM |
+| Var                  | Kind                 | Value                   |
+| -------------------- | -------------------- | ----------------------- |
+| `VAULT_TOKEN`        | env, sensitive       | OpenBao admin token     |
+| `kubernetes_ca_cert` | terraform, sensitive | cluster CA PEM          |
 | `token_reviewer_jwt` | terraform, sensitive | reviewer SA JWT (below) |
 
 ## Terraform Cloud consumer auth (JWT/OIDC)
@@ -37,11 +37,11 @@ straight from OpenBao via the `vault` provider — no static `VAULT_TOKEN`, no
 Infisical variable set. Auth is HCP workload identity: set these env vars on
 each consumer workspace (HCP obtains a short-lived `VAULT_TOKEN` per run):
 
-| Env var | Value |
-|---------|-------|
-| `TFC_VAULT_PROVIDER_AUTH` | `true` |
-| `TFC_VAULT_ADDR` | `https://vault.hauptmann.dev` |
-| `TFC_VAULT_RUN_ROLE` | `tfc-github` / `tfc-cloudflare` / `tfc-backblaze` / `tfc-pocket-id` |
+| Env var                   | Value                                                               |
+| ------------------------- | ------------------------------------------------------------------- |
+| `TFC_VAULT_PROVIDER_AUTH` | `true`                                                              |
+| `TFC_VAULT_ADDR`          | `https://vault.hauptmann.dev`                                       |
+| `TFC_VAULT_RUN_ROLE`      | `tfc-github` / `tfc-cloudflare` / `tfc-backblaze` / `tfc-pocket-id` |
 
 Public reachability: `vault.hauptmann.dev` is exempt from the Cloudflare
 GeoBlock (AT-only) rule in `terraform/cloudflare` so HCP runners can reach it;
