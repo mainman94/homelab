@@ -298,6 +298,24 @@ variable "repositories" {
         }
       }
     }
+    docker_strapi = {
+      name        = "docker-strapi"
+      description = "Strapi Docker images, fixed and republished"
+      visibility  = "public"
+
+      has_projects = false
+      has_wiki     = false
+
+      rulesets = {
+        default_branch = {
+          name = "default-branch-protection"
+          rules = {
+            deletion         = true
+            non_fast_forward = true
+          }
+        }
+      }
+    }
     profile = {
       name = "mainman94"
 
