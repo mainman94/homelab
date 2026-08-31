@@ -45,6 +45,7 @@ locals {
     # authenticate against Pocket ID themselves.
     jellystat = { name = "Jellystat", domain = "jellystat.hauptmann.dev" }
     dockhand  = { name = "Dockhand", domain = "dockhand.hauptmann.dev" }
+    strapi    = { name = "Strapi", domain = "strapi.hauptmann.dev" }
   }
 
   # Paths that must stay reachable without a login, because the clients are
