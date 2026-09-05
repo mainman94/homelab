@@ -1,0 +1,11 @@
+# House YAML style, kept in step with docker-stack and multi-k8s-infra.
+#
+# retain_line_breaks: playbooks and workflows use blank lines between tasks.
+# scan_folded_as_literal: an Ansible `raw:` block or a folded shell step keeps
+# one line per line instead of being re-folded into a single unreadable one.
+formatter:
+  indent: 2
+  line_ending: lf
+  retain_line_breaks: true
+  scan_folded_as_literal: true
+  trim_trailing_whitespace: true
