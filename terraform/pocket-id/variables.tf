@@ -9,4 +9,3 @@ variable "pocket_id_base_url" {
   type        = string
   default     = "http://192.168.0.129:30411"
 }
-

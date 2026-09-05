@@ -31,6 +31,9 @@ variable "kubernetes_version" {
   default     = "v1.36.3"
 }
 
+# Declared alongside common_config_patch_file for symmetry; the schematic is
+# currently passed to the Image Factory out of band.
+# tflint-ignore: terraform_unused_declarations
 variable "schematic_file" {
   description = "Path to the Talos Image Factory schematic file."
   type        = string
@@ -65,4 +68,3 @@ variable "controlplane_nodes" {
     error_message = "controlplane_nodes must contain between 1 and 3 nodes."
   }
 }
-

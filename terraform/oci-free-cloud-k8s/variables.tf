@@ -39,9 +39,11 @@ variable "kubernetes_version" {
   default = "v1.34.1"
 }
 
+# Not yet wired up: the node-pool layout is still fixed in k8s.tf. See this
+# stack's README.
+# tflint-ignore: terraform_unused_declarations
 variable "kubernetes_worker_nodes" {
   description = "Worker node count"
   type        = number
   default     = 2
 }
-

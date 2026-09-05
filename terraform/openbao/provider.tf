@@ -1,4 +1,6 @@
 terraform {
+  required_version = ">= 1.6.0"
+
   required_providers {
     # OpenBao is API-compatible with Vault; the hashicorp/vault provider works
     # unmodified. Swap source to "openbao/openbao" later if desired (drop-in).
