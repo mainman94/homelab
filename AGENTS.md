@@ -39,3 +39,69 @@ re-read whole files.
 After big code changes, refresh the graph with `graft build` (deterministic,
 no API key, $0).
 <!-- graft:end -->
+
+# AGENTS
+
+Infrastructure as Code for the homelab control plane: Terraform stacks for
+Cloudflare, GitHub governance, OpenBao, Backblaze, OCI and Talos, plus an
+Ansible playbook that locks the router's inbound web ports to Cloudflare.
+
+State lives in Terraform Cloud. Shared modules live in the sibling repo
+`homelab-terraform-modules`.
+
+## Local workflow
+
+| Command                     | What it does                                       |
+| --------------------------- | -------------------------------------------------- |
+| `make help`                 | List every target                                  |
+| `make hooks`                | Install the git pre-commit hook (do this once)     |
+| `make check`                | Everything a PR needs: hooks + validate            |
+| `make validate`             | `terraform validate` every stack, no credentials   |
+| `make plan STACK=cloudflare`| Plan one stack (needs credentials)                 |
+| `make fmt`                  | Rewrite Terraform to canonical format              |
+| `make security`             | The same trivy config scan CI runs                 |
+| `make lint-deep`            | tflint with provider rulesets (fetches plugins)    |
+| `make ansible-check`        | Dry-run the router playbook                        |
+
+`make` uses `tofu` when OpenTofu is installed and `terraform` otherwise;
+override with `make TF=terraform ...`. `.devcontainer/` provides tofu, tflint,
+ansible, trivy and the hook toolchain.
+
+## Automated checks
+
+`.pre-commit-config.yaml` runs on every commit: `terraform_fmt`,
+`terraform_tflint` (core ruleset, `.tflint.hcl`), `ansible-lint` on the
+production profile, `yamlfmt`, `shellcheck`, `shfmt`, `gitleaks` and hygiene
+hooks.
+
+Deliberately not hooks:
+
+- **`terraform validate`** and provider-aware tflint rules need
+  `terraform init`, which pulls providers over the network on every run.
+  `make validate` and `make lint-deep`.
+- **`trivy`** stays in CI (`.github/workflows/trivy.yml`) and `make security`.
+
+`yamlfmt` skips `ansible/`: ansible-lint bundles its own yamllint and expects
+the `---` document start that yamlfmt strips.
+
+## Conventions
+
+- **Every stack pins `required_version = ">= 1.6.0"`** and every provider it
+  uses carries a version constraint in `required_providers`. A provider used
+  but not declared means Terraform silently installs whatever is newest.
+- **A declaration that is deliberately not wired up yet gets a
+  `# tflint-ignore: terraform_unused_declarations` on the line directly above
+  it, with a comment saying why.** The rule stays on so real dead code is
+  still caught. Current cases: `kubernetes_worker_nodes` and
+  `oci_containerengine_node_pool_option` in `oci-free-cloud-k8s` (the node-pool
+  layout is still fixed in `k8s.tf`), and `schematic_file` in `talos`.
+- **Secrets never land in the repo.** `kubeconfig`, `talosconfig` and
+  `*.tfvars` are gitignored; values come from Terraform Cloud variables or the
+  environment. `gitleaks` and `detect-private-key` are the backstop, not the
+  rule.
+- **`.trivyignore` needs a reason.** Each entry names the rule and why it does
+  not apply (e.g. `AVD-GIT-0001`: repositories are intentionally public).
+- **The OpenWrt playbook goes through `raw:`** because OpenWrt ships without
+  python. Ordering in `openwrt-cloudflare-allowlist.yml` matters: fw4
+  evaluates rules in config order, so the accept rule must precede the drop,
+  and both are recreated on every run to keep that guaranteed.
