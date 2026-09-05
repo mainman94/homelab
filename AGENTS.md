@@ -63,9 +63,18 @@ State lives in Terraform Cloud. Shared modules live in the sibling repo
 | `make lint-deep`            | tflint with provider rulesets (fetches plugins)    |
 | `make ansible-check`        | Dry-run the router playbook                        |
 
-`make` uses `tofu` when OpenTofu is installed and `terraform` otherwise;
-override with `make TF=terraform ...`. `.devcontainer/` provides tofu, tflint,
+`make` uses `terraform` when it is installed and falls back to `tofu`;
+override with `make TF=tofu ...`. `.devcontainer/` provides Terraform, tflint,
 ansible, trivy and the hook toolchain.
+
+**This repo needs Terraform, not OpenTofu.** `cloudflare`, `github`,
+`infrastructure` and `pocket-id` fetch their credentials through an
+`ephemeral "vault_kv_secret_v2"` block so the value never reaches state.
+`ephemeral` is a Terraform >= 1.10 feature that OpenTofu does not implement —
+`tofu validate` fails on those four with *"Blocks of type \"ephemeral\" are
+not expected here"*. Those stacks pin `required_version = ">= 1.10.0"`; the
+other three, which use no ephemeral blocks, stay at `>= 1.6.0` and do work
+under OpenTofu.
 
 ## Automated checks
 

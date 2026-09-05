@@ -21,10 +21,13 @@ jobs:
           python-version: "3.12"
 
       # terraform_fmt and terraform_tflint shell out to binaries the hooks do
-      # not install themselves.
-      - uses: opentofu/setup-opentofu@v1
+      # not install themselves. Terraform, not OpenTofu: four stacks use
+      # `ephemeral` blocks, which OpenTofu does not implement.
+      - uses: hashicorp/setup-terraform@v3
         with:
-          tofu_version: "1.10.6"
+          terraform_version: latest
+          # The wrapper rewrites stdout, which confuses the hooks.
+          terraform_wrapper: false
 
       - uses: terraform-linters/setup-tflint@v6
         with:
@@ -32,9 +35,6 @@ jobs:
 
       - name: Run every hook
         uses: pre-commit/action@v3.0.1
-        env:
-          # pre-commit-terraform prefers `terraform`; only tofu is installed.
-          PCT_TFPATH: tofu
 
   validate:
     name: validate (${{ matrix.stack }})
@@ -53,14 +53,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: opentofu/setup-opentofu@v1
+      - uses: hashicorp/setup-terraform@v3
         with:
-          tofu_version: "1.10.6"
+          terraform_version: latest
+          terraform_wrapper: false
 
       # -backend=false: state lives in Terraform Cloud and validate does not
       # need it, so this runs without any credentials.
       - name: Validate
         working-directory: terraform/${{ matrix.stack }}
         run: |-
-          tofu init -backend=false -input=false
-          tofu validate
+          terraform init -backend=false -input=false
+          terraform validate

@@ -31,6 +31,9 @@ homelab dev container ready.
   make check                hooks + terraform validate across every stack
   make plan STACK=cloudflare  one stack (needs credentials)
 
+Terraform, not OpenTofu: four stacks use `ephemeral` blocks, which OpenTofu
+does not implement.
+
 Terraform Cloud holds the state; nothing here is configured to run applies
 on its own.
 MSG

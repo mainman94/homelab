@@ -9,7 +9,10 @@ SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
 .DEFAULT_GOAL := help
 
-TF ?= $(shell command -v tofu 2>/dev/null || command -v terraform 2>/dev/null || echo terraform)
+# Terraform first, not OpenTofu: four stacks use `ephemeral` blocks, a
+# Terraform >= 1.10 feature OpenTofu does not implement. Override with
+# `make TF=tofu ...` for the stacks that do not use them.
+TF ?= $(shell command -v terraform 2>/dev/null || command -v tofu 2>/dev/null || echo terraform)
 STACKS := $(patsubst terraform/%/,%,$(wildcard terraform/*/))
 
 # `make plan STACK=cloudflare` narrows any per-stack target to one stack.

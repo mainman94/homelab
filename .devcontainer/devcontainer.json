@@ -2,15 +2,14 @@
   "name": "homelab",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
   "features": {
+    // Terraform, not OpenTofu: four stacks use `ephemeral` blocks, a
+    // Terraform >= 1.10 feature OpenTofu does not implement.
     "ghcr.io/devcontainers/features/terraform:1": {
-      "version": "none",
+      "version": "latest",
       "tflint": "latest",
       "terragrunt": "none",
       "installTFsec": false,
       "installTerraformDocs": false
-    },
-    "ghcr.io/devcontainers-extra/features/opentofu:1": {
-      "version": "latest"
     },
     // Ansible for `make ansible-check` / `ansible-run`. The pre-commit
     // ansible-lint hook brings its own ansible-core, so linting works without

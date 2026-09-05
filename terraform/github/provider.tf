@@ -1,5 +1,6 @@
 terraform {
-  required_version = ">= 1.6.0"
+  # >= 1.10: this stack uses an `ephemeral` block.
+  required_version = ">= 1.10.0"
 
   required_providers {
     github = {
