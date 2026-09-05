@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # terraform_fmt and terraform_tflint shell out to binaries the hooks do
+      # not install themselves.
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "1.10.6"
+
+      - uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: v0.64.0
+
+      - name: Run every hook
+        uses: pre-commit/action@v3.0.1
+        env:
+          # pre-commit-terraform prefers `terraform`; only tofu is installed.
+          PCT_TFPATH: tofu
+
+  validate:
+    name: validate (${{ matrix.stack }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        stack:
+          - cloudflare
+          - github
+          - infrastructure
+          - oci-free-cloud-k8s
+          - openbao
+          - pocket-id
+          - talos
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "1.10.6"
+
+      # -backend=false: state lives in Terraform Cloud and validate does not
+      # need it, so this runs without any credentials.
+      - name: Validate
+        working-directory: terraform/${{ matrix.stack }}
+        run: |-
+          tofu init -backend=false -input=false
+          tofu validate

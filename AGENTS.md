@@ -59,7 +59,7 @@ State lives in Terraform Cloud. Shared modules live in the sibling repo
 | `make validate`             | `terraform validate` every stack, no credentials   |
 | `make plan STACK=cloudflare`| Plan one stack (needs credentials)                 |
 | `make fmt`                  | Rewrite Terraform to canonical format              |
-| `make security`             | The same trivy config scan CI runs                 |
+| `make scan`                 | The same trivy config scan CI runs                 |
 | `make lint-deep`            | tflint with provider rulesets (fetches plugins)    |
 | `make ansible-check`        | Dry-run the router playbook                        |
 
@@ -79,7 +79,16 @@ Deliberately not hooks:
 - **`terraform validate`** and provider-aware tflint rules need
   `terraform init`, which pulls providers over the network on every run.
   `make validate` and `make lint-deep`.
-- **`trivy`** stays in CI (`.github/workflows/trivy.yml`) and `make security`.
+- **`trivy`** stays in CI (`.github/workflows/trivy.yml`) and `make scan`.
+
+`.github/workflows/ci.yml` runs the hooks and `tofu validate` (one matrix leg
+per stack) on every PR, so neither depends on whoever remembered to install
+the hook. Validate uses `-backend=false`: state is in Terraform Cloud and
+validate does not need it, so the job needs no credentials.
+
+`trivy.yml` already scans config weekly and uploads SARIF to the Security
+tab. It is advisory — `.trivyignore` carries the accepted findings, each with
+a reason.
 
 `yamlfmt` skips `ansible/`: ansible-lint bundles its own yamllint and expects
 the `---` document start that yamlfmt strips.

@@ -74,10 +74,18 @@ lint-deep: ## tflint including provider rulesets (fetches plugins)
 		tflint --chdir=terraform/$$s --config="$(CURDIR)/.tflint.hcl"; \
 	done
 
-.PHONY: security
-security: ## trivy config scan, the same one CI runs
+.PHONY: scan
+scan: ## trivy config scan, the same one CI runs (advisory)
 	@command -v trivy >/dev/null || { echo "trivy not on PATH — see .devcontainer" >&2; exit 1; }
-	trivy config --exit-code 1 .
+	trivy config --ignorefile .trivyignore .
+
+.PHONY: scan-strict
+scan-strict: ## Same scan, but fail on any finding
+	@command -v trivy >/dev/null || { echo "trivy not on PATH — see .devcontainer" >&2; exit 1; }
+	trivy config --ignorefile .trivyignore --exit-code 1 .
+
+.PHONY: security
+security: scan ## Alias for scan
 
 # --- ansible -----------------------------------------------------------------
 
