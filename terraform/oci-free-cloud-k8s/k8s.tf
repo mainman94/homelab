@@ -26,7 +26,12 @@ data "oci_containerengine_cluster_kube_config" "k8s_cluster_kube_config" {
 }
 
 resource "local_file" "kube_config" {
-  depends_on      = [oci_containerengine_node_pool.k8s_node_pool]
+  # Both pools: the kubeconfig is only useful once every node pool the
+  # cluster is meant to have exists.
+  depends_on = [
+    oci_containerengine_node_pool.k8s_node_pool_1,
+    oci_containerengine_node_pool.k8s_node_pool_2,
+  ]
   content         = data.oci_containerengine_cluster_kube_config.k8s_cluster_kube_config.content
   filename        = "../.kube.config"
   file_permission = 0400
