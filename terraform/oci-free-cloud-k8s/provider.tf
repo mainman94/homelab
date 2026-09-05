@@ -3,8 +3,11 @@ terraform {
 
   required_providers {
     oci = {
+      # ~> 8, not ~> 7: oracle-terraform-modules/vcn/oci v4 requires
+      # >= 8.14.0, so the two constraints could not both be satisfied and
+      # the stack could not init at all.
       source  = "oracle/oci"
-      version = "~> 7"
+      version = "~> 8"
     }
 
     local = {
