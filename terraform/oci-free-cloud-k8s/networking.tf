@@ -1,7 +1,10 @@
 module "vcn" {
-  source                       = "oracle-terraform-modules/vcn/oci"
-  version                      = "4.0.0"
-  compartment_id               = var.compartment_id
+  source         = "oracle-terraform-modules/vcn/oci"
+  version        = "4.0.0"
+  compartment_id = var.compartment_id
+  # Required from vcn v4 onwards; the provider block already takes the same
+  # value from var.tenancy_ocid.
+  tenancy_id                   = var.tenancy_ocid
   region                       = var.region
   internet_gateway_route_rules = null
   local_peering_gateways       = null
