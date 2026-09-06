@@ -30,6 +30,11 @@ help: ## Show this help
 	@echo "  Per-stack targets take STACK=<name>, e.g. make plan STACK=cloudflare"
 	@echo "  Stacks: $(STACKS)"
 
+.PHONY: tools
+tools: ## Install the pinned toolchain from mise.toml
+	@command -v mise >/dev/null || { echo "mise not on PATH — see https://mise.jdx.dev or .devcontainer" >&2; exit 1; }
+	mise install
+
 .PHONY: hooks
 hooks: ## Install the git pre-commit hook
 	pre-commit install
@@ -57,6 +62,18 @@ validate: ## terraform validate each stack (no backend, no credentials)
 		echo "==> validate $$s"; \
 		$(TF) -chdir=terraform/$$s init -backend=false -input=false >/dev/null; \
 		$(TF) -chdir=terraform/$$s validate; \
+	done
+
+# Stacks with a tests/ directory only: the rest have nothing to assert that
+# `validate` does not already cover, and an empty suite is worse than none.
+TESTED_STACKS := $(patsubst terraform/%/tests,%,$(wildcard terraform/*/tests))
+
+.PHONY: test
+test: ## Run each stack's tftest suite (mock providers, no credentials)
+	@for s in $(if $(STACK),$(STACK),$(TESTED_STACKS)); do \
+		echo "==> test $$s"; \
+		$(TF) -chdir=terraform/$$s init -backend=false -input=false >/dev/null; \
+		$(TF) -chdir=terraform/$$s test; \
 	done
 
 .PHONY: plan
@@ -107,7 +124,7 @@ ansible-run: ## Apply the Cloudflare allowlist playbook to the router
 # --- meta --------------------------------------------------------------------
 
 .PHONY: check
-check: lint validate ## Everything a PR needs to pass
+check: lint validate test ## Everything a PR needs to pass
 
 .PHONY: clean
 clean: ## Remove downloaded providers

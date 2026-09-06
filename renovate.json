@@ -1,4 +1,19 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"]
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "pre-commit": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "description": "Provider and module pins land in a real plan against live infrastructure, so they get read rather than auto-merged.",
+      "matchManagers": [
+        "terraform"
+      ],
+      "automerge": false
+    }
+  ]
 }

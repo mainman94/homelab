@@ -167,6 +167,24 @@ variable "repositories" {
               required_review_thread_resolution = true
               allowed_merge_methods             = ["squash", "rebase"]
             }
+            # Only checks that run on *every* pull request belong here: a
+            # path-filtered workflow never reports on a PR outside its paths,
+            # and a required check that never reports blocks the merge for
+            # good. integration_id pins each context to the GitHub Actions app
+            # so nothing else can post a passing check under the same name.
+            required_status_checks = {
+              required_checks = [
+                { context = "pre-commit", integration_id = 15368 },
+                { context = "validate (cloudflare)", integration_id = 15368 },
+                { context = "validate (github)", integration_id = 15368 },
+                { context = "validate (infrastructure)", integration_id = 15368 },
+                { context = "validate (oci-free-cloud-k8s)", integration_id = 15368 },
+                { context = "validate (openbao)", integration_id = 15368 },
+                { context = "validate (pocket-id)", integration_id = 15368 },
+                { context = "validate (talos)", integration_id = 15368 },
+                { context = "tftest (talos)", integration_id = 15368 },
+              ]
+            }
           }
         }
       }
@@ -195,6 +213,15 @@ variable "repositories" {
               required_review_thread_resolution = true
               allowed_merge_methods             = ["squash", "rebase"]
             }
+            required_status_checks = {
+              required_checks = [
+                { context = "pre-commit", integration_id = 15368 },
+                { context = "tftest (backblaze)", integration_id = 15368 },
+                { context = "tftest (cloudflare)", integration_id = 15368 },
+                { context = "tftest (github)", integration_id = 15368 },
+                { context = "trivy", integration_id = 15368 },
+              ]
+            }
           }
         }
       }
@@ -222,6 +249,17 @@ variable "repositories" {
             pull_request = {
               required_approving_review_count   = 0
               required_review_thread_resolution = true
+            }
+            # Renovate auto-merges here, which is exactly why these are
+            # required: without them "auto-merge" means "merge whatever, the
+            # checks are advisory". ArgoCD applies what reaches main.
+            required_status_checks = {
+              required_checks = [
+                { context = "pre-commit", integration_id = 15368 },
+                { context = "Schema Validation (kubeconform)", integration_id = 15368 },
+                { context = "Best Practices (kube-linter)", integration_id = 15368 },
+                { context = "Security Scan (checkov)", integration_id = 15368 },
+              ]
             }
           }
         }
@@ -294,6 +332,14 @@ variable "repositories" {
               required_approving_review_count   = 0
               required_review_thread_resolution = true
             }
+            # The image CVE sweep (scan.yml) is deliberately absent: it is
+            # path-filtered and advisory, and a required check that does not
+            # run on every PR blocks the merge for good.
+            required_status_checks = {
+              required_checks = [
+                { context = "pre-commit", integration_id = 15368 },
+              ]
+            }
           }
         }
       }
@@ -309,9 +355,31 @@ variable "repositories" {
       rulesets = {
         default_branch = {
           name = "default-branch-protection"
+          # auto-check-new-releases.yml and manual-release.yml push straight to
+          # main with the PAT — that push is what triggers a publish, and a
+          # required status check would otherwise reject it (the checks have
+          # not run for a commit that does not exist yet). Repository admins
+          # bypass; every pull request still has to be green.
+          bypass_actors = [
+            {
+              actor_type  = "RepositoryRole"
+              actor_id    = 5 # admin
+              bypass_mode = "always"
+            }
+          ]
           rules = {
             deletion         = true
             non_fast_forward = true
+            # This repo publishes public images: the lint and smoke-tested
+            # build for both variants gate the branch that triggers a publish.
+            required_status_checks = {
+              required_checks = [
+                { context = "lint (alpine)", integration_id = 15368 },
+                { context = "lint (debian)", integration_id = 15368 },
+                { context = "build (alpine)", integration_id = 15368 },
+                { context = "build (debian)", integration_id = 15368 },
+              ]
+            }
           }
         }
       }

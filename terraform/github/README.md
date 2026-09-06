@@ -21,12 +21,13 @@ only lists what differs per repository.
 
 | Repository | Visibility | Ruleset | Notes |
 |------------|-----------|---------|-------|
-| `homelab` | public | default-branch-protection (+ linear history, PR required) | |
-| `homelab-terraform-modules` | public | default-branch-protection (+ linear history, PR required) | projects + wiki on |
-| `multi-k8s-infra` | public | default-branch-protection (+ PR required) | auto-merge for Renovate, so no linear history |
-| `pp-portfolio-classifier` | public | default-branch-protection | |
-| `dev-config` | public | default-branch-protection | projects + wiki on |
-| `docker-stack` | public | default-branch-protection (+ PR required) | |
+| `homelab` | public | default-branch-protection (+ linear history, PR required, 9 required checks) | |
+| `homelab-terraform-modules` | public | default-branch-protection (+ linear history, PR required, 5 required checks) | projects + wiki on |
+| `multi-k8s-infra` | public | default-branch-protection (+ PR required, 4 required checks) | auto-merge for Renovate, so no linear history |
+| `docker-strapi` | public | default-branch-protection (+ 4 required checks) | admin bypass: the release workflows push to main |
+| `pp-portfolio-classifier` | public | default-branch-protection | no required checks — CI here was not reviewed |
+| `dev-config` | public | default-branch-protection | projects + wiki on; same |
+| `docker-stack` | public | default-branch-protection (+ PR required, 1 required check) | |
 | `mainman94` | public | — | profile README repository |
 | `portfolio` | private | — | rulesets need GitHub Pro on private repos |
 | `portfolio-performance` | private | — | rulesets need GitHub Pro on private repos |
@@ -105,7 +106,8 @@ front of that — it is not about review. Consequently
 higher count would lock the only owner out.
 
 `dev-config` and `pp-portfolio-classifier` stay without the rule. Private
-repositories cannot carry rulesets on this plan at all.
+repositories cannot carry rulesets on this plan at all — which is why
+`portfolio` has none, despite having the most CI of any repository here.
 
 To merge without leaving the terminal:
 
@@ -118,6 +120,33 @@ gh pr create --fill && gh pr merge --squash
 Repositories are configured through the `repositories` variable as a `map(object(...))`, keyed by stable Terraform identifiers. This keeps resource addresses stable while allowing repository settings to scale without duplicating dozens of root-module variables.
 
 The object model also supports optional repository rulesets so branch governance can be defined alongside visibility, merge settings, and default branch management.
+
+### Required status checks
+
+`required_status_checks` was part of the ruleset type from the start and set on
+no repository, which meant every CI job in the account was advisory: a red
+pull request could be merged, and on `multi-k8s-infra` Renovate's auto-merge
+did exactly that without waiting for anything.
+
+Each required context is pinned to `integration_id = 15368`, the GitHub Actions
+app, so only Actions can satisfy it — otherwise any app able to post a check
+run with a matching name would do.
+
+Two rules for choosing contexts:
+
+1. **Only jobs that run on every pull request.** A path-filtered workflow does
+   not report on a PR outside its paths, and a required check that never
+   reports blocks that PR permanently. This is why `docker-stack`'s image CVE
+   sweep is not required, and why `multi-k8s-infra`'s manifest checks had their
+   path filter removed rather than being left out.
+2. **The context is the job's `name:`**, including the matrix value —
+   `validate (talos)`, `lint (alpine)`. Rename a job and the ruleset stops
+   matching, silently, so the two move together.
+
+`docker-strapi` carries a repository-admin bypass: its release workflows push
+straight to `main` with a PAT, and that push is what triggers a publish. A
+required check would reject a push whose checks cannot have run yet. Pull
+requests there are still gated.
 
 ## Terraform Cloud note
 

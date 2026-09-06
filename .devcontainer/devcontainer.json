@@ -2,24 +2,15 @@
   "name": "homelab",
   "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
   "features": {
-    // Terraform, not OpenTofu: four stacks use `ephemeral` blocks, a
-    // Terraform >= 1.10 feature OpenTofu does not implement.
-    "ghcr.io/devcontainers/features/terraform:1": {
-      "version": "latest",
-      "tflint": "latest",
-      "terragrunt": "none",
-      "installTFsec": false,
-      "installTerraformDocs": false
-    },
+    // terraform, tflint, python, pre-commit, actionlint, shellcheck and
+    // trivy are not features any more: mise.toml pins them and post-create
+    // runs `mise install`. One version list, shared with CI — both used to
+    // ask for `latest` independently.
     // Ansible for `make ansible-check` / `ansible-run`. The pre-commit
     // ansible-lint hook brings its own ansible-core, so linting works without
     // this — running the playbook against the router does not.
     "ghcr.io/devcontainers-extra/features/ansible:2": {
       "version": "latest"
-    },
-    "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.14",
-      "installTools": false
     },
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": true,
