@@ -27,7 +27,6 @@ only lists what differs per repository.
 | `docker-strapi` | public | default-branch-protection (+ 4 required checks) | admin bypass: the release workflows push to main |
 | `pp-portfolio-classifier` | public | default-branch-protection | no required checks — CI here was not reviewed |
 | `dev-config` | public | default-branch-protection | projects + wiki on; same |
-| `.github` | public | default-branch-protection | being deleted: `archive_on_destroy = false` staged first, entry removed in the follow-up |
 | `docker-stack` | public | default-branch-protection (+ PR required, 1 required check) | |
 | `mainman94` | public | — | profile README repository |
 | `portfolio` | private | — | rulesets need GitHub Pro on private repos |
