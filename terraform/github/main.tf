@@ -10,7 +10,7 @@ locals {
 
 module "repositories" {
   for_each = var.repositories
-  source   = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=b24f007257e4f04f7f150b735499b3ffddbdcc27" # github-0.1.9
+  source   = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.9"
 
   name         = each.value.name
   description  = try(each.value.description, null)
