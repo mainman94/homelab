@@ -79,6 +79,20 @@ repos:
       - id: shfmt-src
         args: [-i, "2", -ci]
 
+  # Workflow linting. actionlint checks schema, expressions and the shell in
+  # `run:` blocks (using the pinned shellcheck); zizmor audits the same files
+  # for CI/CD security patterns — unpinned actions, credentials left on disk
+  # by checkout, template injection through ${{ }} in a run block.
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.9
+    hooks:
+      - id: actionlint-system
+
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.9.0
+    hooks:
+      - id: zizmor
+
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.0
     hooks:

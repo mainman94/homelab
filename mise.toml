@@ -1,0 +1,27 @@
+# The toolchain for this repo, in one place.
+#
+# The dev container, the git hooks and CI all install from here. Before this,
+# CI asked for terraform `latest` and the dev container asked for terraform
+# and tflint `latest` independently — two machines could be a release apart,
+# and "it validates locally" meant nothing.
+#
+# Renovate keeps these pins current (mise manager).
+
+[tools]
+# Terraform, not OpenTofu: four stacks use `ephemeral` blocks, a
+# Terraform >= 1.10 feature OpenTofu does not implement.
+terraform = "1.16.1"
+tflint = "0.64.0"
+
+# pre-commit builds the rest of the hook toolchain — yamlfmt, shfmt,
+# gitleaks, ansible-lint (which brings its own ansible-core) — into its own
+# cached envs.
+python = "3.14"
+pre-commit = "4.6.2"
+
+# actionlint shells out to shellcheck for `run:` blocks.
+actionlint = "1.7.9"
+shellcheck = "0.11.0"
+
+# `make scan`, the same scan trivy-action runs in CI.
+trivy = "0.74.0"

@@ -1,27 +1,33 @@
 #!/usr/bin/env bash
-# Provision the dev container. trivy has no devcontainer feature, so it comes
-# from Aqua's apt repository.
+# Provision the dev container. Everything the repo needs is pinned in
+# mise.toml — terraform, tflint, python, pre-commit, actionlint, shellcheck,
+# trivy — so this installs mise and lets it do the rest. Ansible stays a
+# devcontainer feature: `make ansible-run` needs it, and the pre-commit
+# ansible-lint hook brings its own ansible-core anyway. CI installs from the
+# same mise.toml.
 set -euo pipefail
 
-echo "==> installing pre-commit"
-pipx install pre-commit 2>/dev/null || pip install --user --break-system-packages pre-commit
+echo "==> installing mise"
+curl -fsSL https://mise.run | sh
 export PATH="$HOME/.local/bin:$PATH"
 
-echo "==> installing trivy"
-sudo apt-get update -qq
-sudo apt-get install -y -qq wget gnupg
-wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key \
-  | sudo gpg --dearmor -o /usr/share/keyrings/trivy.gpg
-echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" \
-  | sudo tee /etc/apt/sources.list.d/trivy.list >/dev/null
-sudo apt-get update -qq
-sudo apt-get install -y -qq trivy
+# Activate for interactive shells so the pinned binaries are on PATH.
+for shell in bash zsh; do
+  rc="$HOME/.${shell}rc"
+  [ -f "$rc" ] || continue
+  grep -q "mise activate" "$rc" || echo "eval \"\$(mise activate $shell)\"" >> "$rc"
+done
+
+echo "==> installing the pinned toolchain (terraform, tflint, python, pre-commit, actionlint, shellcheck, trivy)"
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+mise trust
+mise install
 
 echo "==> installing the git hook"
-pre-commit install
+mise exec -- pre-commit install
 
 echo "==> warming hook environments"
-pre-commit install-hooks
+mise exec -- pre-commit install-hooks
 
 cat <<'MSG'
 

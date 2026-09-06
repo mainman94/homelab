@@ -54,9 +54,11 @@ State lives in Terraform Cloud. Shared modules live in the sibling repo
 | Command                     | What it does                                       |
 | --------------------------- | -------------------------------------------------- |
 | `make help`                 | List every target                                  |
+| `make tools`                | Install the pinned toolchain from `mise.toml`      |
 | `make hooks`                | Install the git pre-commit hook (do this once)     |
-| `make check`                | Everything a PR needs: hooks + validate            |
+| `make check`                | Everything a PR needs: hooks + validate + test     |
 | `make validate`             | `terraform validate` every stack, no credentials   |
+| `make test`                 | Each stack's tftest suite (mock providers)         |
 | `make plan STACK=cloudflare`| Plan one stack (needs credentials)                 |
 | `make fmt`                  | Rewrite Terraform to canonical format              |
 | `make scan`                 | The same trivy config scan CI runs                 |
@@ -64,8 +66,15 @@ State lives in Terraform Cloud. Shared modules live in the sibling repo
 | `make ansible-check`        | Dry-run the router playbook                        |
 
 `make` uses `terraform` when it is installed and falls back to `tofu`;
-override with `make TF=tofu ...`. `.devcontainer/` provides Terraform, tflint,
-ansible, trivy and the hook toolchain.
+override with `make TF=tofu ...`. `.devcontainer/` provides ansible;
+everything else comes from mise.
+
+**Tool versions live in `mise.toml` and nowhere else** — terraform, tflint,
+python, pre-commit, actionlint, shellcheck, trivy. The dev container's
+post-create runs `mise install`, and CI installs from the same file with
+`jdx/mise-action`. Both used to ask for `latest` independently, so two
+machines could be a Terraform release apart and "it validates locally" meant
+nothing. Renovate bumps the pins.
 
 **This repo needs Terraform, not OpenTofu.** `cloudflare`, `github`,
 `infrastructure` and `pocket-id` fetch their credentials through an
@@ -80,8 +89,13 @@ under OpenTofu.
 
 `.pre-commit-config.yaml` runs on every commit: `terraform_fmt`,
 `terraform_tflint` (core ruleset, `.tflint.hcl`), `ansible-lint` on the
-production profile, `yamlfmt`, `shellcheck`, `shfmt`, `gitleaks` and hygiene
-hooks.
+production profile, `yamlfmt`, `shellcheck`, `shfmt`, `gitleaks`, hygiene
+hooks, and `actionlint` + `zizmor` over `.github/workflows/`.
+
+Every action reference is pinned to a **commit SHA** with the tag in a
+trailing comment. A moving tag can be repointed at new code without the pin
+changing; Renovate keeps the digests current
+(`helpers:pinGitHubActionDigests`). Do not "tidy" a pin back to `@v7`.
 
 Deliberately not hooks:
 
@@ -90,10 +104,26 @@ Deliberately not hooks:
   `make validate` and `make lint-deep`.
 - **`trivy`** stays in CI (`.github/workflows/trivy.yml`) and `make scan`.
 
-`.github/workflows/ci.yml` runs the hooks and `tofu validate` (one matrix leg
-per stack) on every PR, so neither depends on whoever remembered to install
-the hook. Validate uses `-backend=false`: state is in Terraform Cloud and
-validate does not need it, so the job needs no credentials.
+`.github/workflows/ci.yml` runs the hooks, `terraform validate` (one matrix
+leg per stack) and the tftest suites on every PR, so none of it depends on who
+remembered to install the hook. Validate uses `-backend=false`: state is in
+Terraform Cloud and validate does not need it, so the job needs no
+credentials.
+
+**`terraform test` covers the two stacks that have something to assert.**
+`terraform/github/tests/` pins the eight validation rules on the repository
+and ruleset object model — the thing that decides who can push what to every
+repository in the account, where a typo that silently produces *no* rule is
+worse than a plan that fails. `terraform/talos/tests/` pins the control-plane
+node map: `cp1` must exist (bootstrap and kubeconfig key off it) and the map
+must hold one to three nodes. Both use `mock_provider` and need no
+credentials.
+
+The other five stacks have no suite on purpose. Their variables carry no
+validation rules, and a plan needs real credentials — an empty test file would
+be worse than none. If you add a `validation` block to one of them, add a
+`tests/` directory with it; `make test` and the CI matrix pick it up from the
+directory's existence.
 
 `trivy.yml` already scans config weekly and uploads SARIF to the Security
 tab. It is advisory — `.trivyignore` carries the accepted findings, each with

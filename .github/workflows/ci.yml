@@ -14,27 +14,22 @@ jobs:
     name: pre-commit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          python-version: "3.14"
+          persist-credentials: false
 
-      # terraform_fmt and terraform_tflint shell out to binaries the hooks do
-      # not install themselves. Terraform, not OpenTofu: four stacks use
-      # `ephemeral` blocks, which OpenTofu does not implement.
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: latest
-          # The wrapper rewrites stdout, which confuses the hooks.
-          terraform_wrapper: false
+      # terraform, tflint, python, pre-commit, actionlint and shellcheck, all
+      # at the versions in mise.toml — the same file the dev container installs
+      # from. CI and the dev container both used to ask for `latest`.
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
 
-      - uses: terraform-linters/setup-tflint@v6
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
-          tflint_version: v0.64.0
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Run every hook
-        uses: pre-commit/action@v3.0.1
+        run: pre-commit run --all-files --show-diff-on-failure
 
   validate:
     name: validate (${{ matrix.stack }})
@@ -51,12 +46,11 @@ jobs:
           - pocket-id
           - talos
     steps:
-      - uses: actions/checkout@v7
-
-      - uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          terraform_version: latest
-          terraform_wrapper: false
+          persist-credentials: false
+
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
 
       # -backend=false: state lives in Terraform Cloud and validate does not
       # need it, so this runs without any credentials.
@@ -65,3 +59,31 @@ jobs:
         run: |-
           terraform init -backend=false -input=false
           terraform validate
+
+  test:
+    name: tftest (${{ matrix.stack }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Only the stacks that have a tests/ directory. The others have
+        # nothing to assert beyond what validate already covers, and an empty
+        # suite is worse than none.
+        stack:
+          - github
+          - talos
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+
+      # The suites use mock_provider and only assert variable validation, so
+      # they need no credentials — but providers still download before
+      # `terraform test` can evaluate anything.
+      - name: Test
+        working-directory: terraform/${{ matrix.stack }}
+        run: |-
+          terraform init -backend=false -input=false
+          terraform test
