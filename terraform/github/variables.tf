@@ -316,20 +316,33 @@ variable "repositories" {
         }
       }
     }
-    # Holds the reusable GitHub Actions workflows the other repositories call,
-    # so the pre-commit job is defined once instead of six times.
+    # Slated for deletion — this entry now exists only to get
+    # archive_on_destroy into state before it is removed.
     #
-    # default_branch is deliberately null: the module has no auto_init, so
-    # Terraform creates this repository empty, with no branch for
-    # github_branch_default to point at. Flip it to "main" once the first
-    # commit is pushed. No required status checks either — the workflows here
-    # are called by other repositories rather than run on their own.
+    # The repository was created for reusable workflows, then that turned out
+    # to be a bad trade: a job calling a reusable workflow reports as
+    # `<caller job> / <called job>`, so converting would rename every required
+    # status check and block every pull request until the ruleset caught up.
+    #
+    # Deleting it needs two applies, because the module used to hold
+    # archive_on_destroy behind ignore_changes: the repository was created
+    # with the default `true`, so a destroy would archive it rather than
+    # delete it, and no later apply could change that. github-0.1.9 drops the
+    # ignore_changes, so the value below finally takes effect.
+    #
+    #   1. This apply, which only writes archive_on_destroy into state.
+    #   2. Deleting this block, which then destroys the repository for real.
     dot_github = {
       name        = ".github"
       description = "Shared GitHub Actions reusable workflows"
       visibility  = "public"
       topics      = ["github-actions", "reusable-workflows", "ci"]
 
+      # The repository was never populated, so there is nothing to preserve.
+      archive_on_destroy = false
+
+      # Still unmanaged: the repository has no commits, so there is no branch
+      # for github_branch_default to point at.
       default_branch = null
 
       has_issues   = false
