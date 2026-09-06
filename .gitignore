@@ -10,7 +10,14 @@
 kubeconfig
 talosconfig
 .at
-.claude
+# Agent configuration is shared (same rule as multi-k8s-infra and
+# docker-stack): the hooks, skills and reviewer agent are checked in,
+# anything else under .claude/ is local scratch.
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+!.claude/skills/
+!.claude/agents/
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
