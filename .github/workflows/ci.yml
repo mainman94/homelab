@@ -18,10 +18,14 @@ jobs:
         with:
           persist-credentials: false
 
-      # terraform, tflint, python, pre-commit, actionlint and shellcheck, all
-      # at the versions in mise.toml — the same file the dev container installs
-      # from. CI and the dev container both used to ask for `latest`.
+      # The versions come from mise.toml, the same file the dev container
+      # installs from; CI and the dev container both used to ask for `latest`.
+      # install_args names only what this job needs — trivy is in mise.toml
+      # for `make scan` and is the one tool aqua verifies through Sigstore, so
+      # installing it here would make every lint run depend on the TUF CDN.
       - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+        with:
+          install_args: terraform tflint python pre-commit actionlint shellcheck
 
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
@@ -51,6 +55,8 @@ jobs:
           persist-credentials: false
 
       - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+        with:
+          install_args: terraform
 
       # -backend=false: state lives in Terraform Cloud and validate does not
       # need it, so this runs without any credentials.
@@ -66,11 +72,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Only the stacks that have a tests/ directory. The others have
-        # nothing to assert beyond what validate already covers, and an empty
-        # suite is worse than none.
+        # Only the stacks that have a tests/ directory. See AGENTS.md for why
+        # that is currently just talos — the github stack cannot be tested
+        # while its provider auth uses an ephemeral resource.
         stack:
-          - github
           - talos
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -78,6 +83,8 @@ jobs:
           persist-credentials: false
 
       - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+        with:
+          install_args: terraform
 
       # The suites use mock_provider and only assert variable validation, so
       # they need no credentials — but providers still download before

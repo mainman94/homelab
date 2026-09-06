@@ -182,7 +182,6 @@ variable "repositories" {
                 { context = "validate (openbao)", integration_id = 15368 },
                 { context = "validate (pocket-id)", integration_id = 15368 },
                 { context = "validate (talos)", integration_id = 15368 },
-                { context = "tftest (github)", integration_id = 15368 },
                 { context = "tftest (talos)", integration_id = 15368 },
               ]
             }

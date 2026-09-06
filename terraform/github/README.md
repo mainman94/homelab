@@ -21,7 +21,7 @@ only lists what differs per repository.
 
 | Repository | Visibility | Ruleset | Notes |
 |------------|-----------|---------|-------|
-| `homelab` | public | default-branch-protection (+ linear history, PR required, 10 required checks) | |
+| `homelab` | public | default-branch-protection (+ linear history, PR required, 9 required checks) | |
 | `homelab-terraform-modules` | public | default-branch-protection (+ linear history, PR required, 5 required checks) | projects + wiki on |
 | `multi-k8s-infra` | public | default-branch-protection (+ PR required, 4 required checks) | auto-merge for Renovate, so no linear history |
 | `docker-strapi` | public | default-branch-protection (+ 4 required checks) | admin bypass: the release workflows push to main |

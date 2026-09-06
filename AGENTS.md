@@ -110,20 +110,32 @@ remembered to install the hook. Validate uses `-backend=false`: state is in
 Terraform Cloud and validate does not need it, so the job needs no
 credentials.
 
-**`terraform test` covers the two stacks that have something to assert.**
-`terraform/github/tests/` pins the eight validation rules on the repository
-and ruleset object model — the thing that decides who can push what to every
-repository in the account, where a typo that silently produces *no* rule is
-worse than a plan that fails. `terraform/talos/tests/` pins the control-plane
-node map: `cp1` must exist (bootstrap and kubeconfig key off it) and the map
-must hold one to three nodes. Both use `mock_provider` and need no
-credentials.
+**`terraform test` covers `talos`.** `terraform/talos/tests/` pins the
+control-plane node map: `cp1` must exist (bootstrap and kubeconfig key off it)
+and the map must hold one to three nodes. It uses `mock_provider`, so it needs
+no credentials.
 
-The other five stacks have no suite on purpose. Their variables carry no
-validation rules, and a plan needs real credentials — an empty test file would
-be worse than none. If you add a `validation` block to one of them, add a
-`tests/` directory with it; `make test` and the CI matrix pick it up from the
-directory's existence.
+**The `github` stack cannot be tested this way, and that is not an oversight.**
+Its `github` provider is configured from an `ephemeral "vault_kv_secret_v2"`
+block, and Terraform's test mocking refuses outright:
+
+```text
+Error: No ephemeral resource types in mock providers
+  with ephemeral.vault_kv_secret_v2.github
+```
+
+That happens during setup, before any `run` block executes, so even pure
+variable-validation tests cannot run — a suite was written for its eight
+validation rules and had to be removed. Those rules are covered by
+`terraform validate` and the TFC plan instead. If Terraform gains ephemeral
+mocking, the suite is worth writing again; that is the only thing standing in
+the way.
+
+The other five stacks have no suite because their variables carry no
+validation rules and their plans need real credentials — an empty test file
+would be worse than none. If you add a `validation` block to one, add a
+`tests/` directory with it: `make test` picks it up from the directory
+existing, and the CI matrix needs the stack name adding.
 
 `trivy.yml` already scans config weekly and uploads SARIF to the Security
 tab. It is advisory — `.trivyignore` carries the accepted findings, each with
