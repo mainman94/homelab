@@ -23,7 +23,7 @@ jobs:
       # terraform_fmt and terraform_tflint shell out to binaries the hooks do
       # not install themselves. Terraform, not OpenTofu: four stacks use
       # `ephemeral` blocks, which OpenTofu does not implement.
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: latest
           # The wrapper rewrites stdout, which confuses the hooks.
@@ -53,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: latest
           terraform_wrapper: false
