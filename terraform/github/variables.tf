@@ -316,6 +316,36 @@ variable "repositories" {
         }
       }
     }
+    # Holds the reusable GitHub Actions workflows the other repositories call,
+    # so the pre-commit job is defined once instead of six times.
+    #
+    # default_branch is deliberately null: the module has no auto_init, so
+    # Terraform creates this repository empty, with no branch for
+    # github_branch_default to point at. Flip it to "main" once the first
+    # commit is pushed. No required status checks either — the workflows here
+    # are called by other repositories rather than run on their own.
+    dot_github = {
+      name        = ".github"
+      description = "Shared GitHub Actions reusable workflows"
+      visibility  = "public"
+      topics      = ["github-actions", "reusable-workflows", "ci"]
+
+      default_branch = null
+
+      has_issues   = false
+      has_projects = false
+      has_wiki     = false
+
+      rulesets = {
+        default_branch = {
+          name = "default-branch-protection"
+          rules = {
+            deletion         = true
+            non_fast_forward = true
+          }
+        }
+      }
+    }
     docker_stack = {
       name        = "docker-stack"
       description = "Docker Compose services running on the homelab hosts"
