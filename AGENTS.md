@@ -144,6 +144,36 @@ a reason.
 `yamlfmt` skips `ansible/`: ansible-lint bundles its own yamllint and expects
 the `---` document start that yamlfmt strips.
 
+## Agent tooling
+
+`.claude/` is checked in, so every agent working here gets the same setup:
+
+- **`agents/stack-reviewer.md`** — reviews a diff for blast radius against live
+  infrastructure. There is no staging: a merge becomes a Terraform Cloud plan
+  against real Cloudflare, GitHub, OpenBao, Backblaze and OCI accounts, or an
+  Ansible run against the router. Ask for it by name before pushing anything
+  that touches those.
+- **`skills/validate/SKILL.md`** — runs `make check` and reports failures.
+- **`hooks/guard-secrets.sh`** (PreToolUse) blocks writes that would put a
+  credential in the repo; **`hooks/format-terraform.sh`** (PostToolUse) runs
+  `terraform fmt` on what was just written, so `fmt -check` in CI does not fail
+  on whitespace.
+
+The hooks fire automatically from `settings.json`; the agent and skill are
+invoked deliberately.
+
+## Module pins and releases
+
+Stacks consume `homelab-terraform-modules` by **tag** (`?ref=github-0.1.9`),
+never by branch or by a floating SHA. Tags are cut by that repo's release
+workflow when a module's `VERSION` file changes on main — a change there without
+a `VERSION` bump fails its `version bump` job, so there is no path to an
+untagged module change.
+
+Bumping a pin here is a normal PR: change the `ref`, then
+`terraform init -upgrade` and plan the stack. `terraform init` caches modules,
+so without `-upgrade` a new ref is silently ignored and you plan the old module.
+
 ## Conventions
 
 - **Every stack pins `required_version = ">= 1.6.0"`** and every provider it
