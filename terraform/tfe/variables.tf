@@ -7,7 +7,7 @@ variable "organization" {
 variable "agent_pool_name" {
   description = "Name of the existing agent pool for agent-executed workspaces"
   type        = string
-  default     = "homelab"
+  default     = "homelab-eggenberg"
 }
 
 variable "vcs_repo_identifier" {
