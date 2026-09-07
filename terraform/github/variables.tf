@@ -390,20 +390,6 @@ variable "repositories" {
       has_projects = true
       has_wiki     = true
     }
-    # Slated for deletion — this entry now exists only to get
-    # archive_on_destroy into state before it is removed.
-    #
-    #   1. This apply, which only writes archive_on_destroy into state.
-    #   2. Deleting this block, which then destroys the repository for real.
-    stoicful = {
-      name       = "stoicful"
-      visibility = "private"
-
-      has_projects = true
-      has_wiki     = false
-
-      archive_on_destroy = false
-    }
     # Archived: GitHub rejects writes to archived repositories, so every value
     # here mirrors the repository as it stands and the security toggles below
     # stay untouched.

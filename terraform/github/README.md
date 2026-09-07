@@ -31,7 +31,6 @@ only lists what differs per repository.
 | `mainman94` | public | — | profile README repository |
 | `portfolio` | private | — | rulesets need GitHub Pro on private repos |
 | `portfolio-performance` | private | — | rulesets need GitHub Pro on private repos |
-| `stoicful` | private | — | rulesets need GitHub Pro on private repos |
 | `beartainer` | public | — | archived; GitHub rejects writes, values mirror the repository |
 
 Every repository owned by `mainman94` is managed here — there is no
