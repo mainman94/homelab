@@ -1,12 +1,4 @@
-data "tfe_agent_pool" "homelab" {
-  count        = var.agent_pool_id == null ? 1 : 0
-  name         = var.agent_pool_name
-  organization = var.organization
-}
-
 locals {
-  agent_pool_id = coalesce(var.agent_pool_id, try(data.tfe_agent_pool.homelab[0].id, null))
-
   # All workspaces in the eggenberg-homelab organization.
   # Key is the exact Terraform Cloud workspace name.
   workspaces = {
@@ -89,7 +81,7 @@ resource "tfe_workspace" "this" {
   terraform_version = each.value.terraform_version
   auto_apply        = each.value.auto_apply
 
-  agent_pool_id = each.value.execution_mode == "agent" ? local.agent_pool_id : null
+  agent_pool_id = each.value.execution_mode == "agent" ? var.agent_pool_id : null
 
   dynamic "vcs_repo" {
     for_each = var.oauth_token_id != null ? [1] : []

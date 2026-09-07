@@ -5,15 +5,9 @@ variable "organization" {
 }
 
 variable "agent_pool_id" {
-  description = "Agent pool ID (e.g. apool-xxx). If provided, skips looking up the pool by name via data source."
+  description = "Agent pool ID (e.g. apool-xxx) for agent-executed workspaces"
   type        = string
   default     = "apool-QA5S8U2ZmmRMujGd"
-}
-
-variable "agent_pool_name" {
-  description = "Name of the existing agent pool for agent-executed workspaces (used if agent_pool_id is null)"
-  type        = string
-  default     = "homelab-eggenberg"
 }
 
 variable "vcs_repo_identifier" {
