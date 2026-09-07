@@ -31,8 +31,3 @@ import {
   to = tfe_workspace.this["eggenberg-talos-cluster"]
   id = "eggenberg-homelab/eggenberg-talos-cluster"
 }
-
-import {
-  to = tfe_workspace.this["oci-free-cloud-k8s"]
-  id = "eggenberg-homelab/oci-free-cloud-k8s"
-}

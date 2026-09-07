@@ -50,14 +50,6 @@ locals {
       auto_apply        = false
       vault_run_role    = null
     }
-    "oci-free-cloud-k8s" = {
-      description       = "Oracle Cloud Infrastructure free-tier Kubernetes cluster"
-      working_directory = "terraform/oci-free-cloud-k8s"
-      execution_mode    = "remote"
-      terraform_version = "~> 1.6.0"
-      auto_apply        = false
-      vault_run_role    = null
-    }
     "tfe" = {
       description       = "Terraform Cloud workspaces, agent pools, and workload-identity variables"
       working_directory = "terraform/tfe"
