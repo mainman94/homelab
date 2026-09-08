@@ -27,3 +27,9 @@ variable "vault_address" {
   type        = string
   default     = "http://192.168.0.129:30020"
 }
+
+variable "terraform_version" {
+  description = "Terraform version pinned for all managed workspaces"
+  type        = string
+  default     = "1.16.1"
+}
