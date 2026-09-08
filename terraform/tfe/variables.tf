@@ -4,10 +4,10 @@ variable "organization" {
   default     = "eggenberg-homelab"
 }
 
-variable "agent_pool_name" {
-  description = "Name of the existing agent pool for agent-executed workspaces"
+variable "agent_pool_id" {
+  description = "Agent pool ID (e.g. apool-xxx) for agent-executed workspaces"
   type        = string
-  default     = "homelab"
+  default     = "apool-QA5S8U2ZmmRMujGd"
 }
 
 variable "vcs_repo_identifier" {
@@ -16,11 +16,10 @@ variable "vcs_repo_identifier" {
   default     = "mainman94/homelab"
 }
 
-variable "oauth_token_id" {
-  description = "OAuth token ID for VCS connection in Terraform Cloud (optional, leave null to manage workspaces without VCS integration or if configured out-of-band)"
+variable "github_app_installation_id" {
+  description = "GitHub App installation ID (ghain-xxx) backing the VCS connection for workspaces in this org"
   type        = string
-  default     = null
-  sensitive   = true
+  default     = "ghain-JGyg1guxS3fD1GPu"
 }
 
 variable "vault_address" {

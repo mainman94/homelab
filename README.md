@@ -72,7 +72,7 @@ changes; bumping a pin here is how a module change reaches these stacks.
 
 `terraform/github` manages repository settings through a `map(object)` model so new repositories can be added without duplicating root-module variables.
 
-The stack currently manages twelve repositories:
+The stack currently manages eleven repositories:
 
 - `mainman94/beartainer`
 - `mainman94/dev-config`
@@ -85,7 +85,6 @@ The stack currently manages twelve repositories:
 - `mainman94/portfolio`
 - `mainman94/portfolio-performance`
 - `mainman94/pp-portfolio-classifier`
-- `mainman94/stoicful`
 
 It also manages repository rulesets. The `default-branch-protection` ruleset
 prevents force pushes and branch deletion and requires a pull request on the
