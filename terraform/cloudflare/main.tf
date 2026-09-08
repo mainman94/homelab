@@ -96,7 +96,12 @@ resource "cloudflare_ruleset" "firewall_custom" {
       description = "GeoBlock"
       action      = "block"
       enabled     = true
-      expression  = "(not ip.src.country in {\"AT\"} and http.host strict wildcard r\"*.hauptmann.dev\")"
+      # Umami's tracking script and collect endpoint are served to every
+      # visitor of hauptmann.dev, not just AT-based ones (see
+      # zero_trust.tf's access_public_paths) — without this carve-out the
+      # GeoBlock discards non-AT visits before Umami ever sees them, so
+      # analytics only ever show AT traffic.
+      expression = "(not ip.src.country in {\"AT\"} and http.host strict wildcard r\"*.hauptmann.dev\" and not (http.host eq \"umami.hauptmann.dev\" and (http.request.uri.path eq \"/script.js\" or http.request.uri.path eq \"/api/send\")))"
     }
   ]
 }
