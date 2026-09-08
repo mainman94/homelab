@@ -6,7 +6,7 @@ locals {
       description       = "Cloudflare DNS, WAF, Zero Trust, and Email Routing"
       working_directory = "terraform/cloudflare"
       execution_mode    = "agent"
-      terraform_version = "1.16.1"
+      terraform_version = var.terraform_version
       auto_apply        = true
       vcs_connected     = true
       trigger_patterns  = ["terraform/cloudflare/**/*"]
@@ -16,27 +16,27 @@ locals {
       description       = "GitHub organization repositories and rulesets governance"
       working_directory = "terraform/github"
       execution_mode    = "agent"
-      terraform_version = "1.16.1"
+      terraform_version = var.terraform_version
       auto_apply        = true
       vcs_connected     = true
-      trigger_patterns  = []
+      trigger_patterns  = ["terraform/github/**/*"]
       vault_run_role    = "tfc-github"
     }
     "backblaze" = {
       description       = "Backblaze B2 storage buckets and credentials"
       working_directory = "terraform/infrastructure"
       execution_mode    = "agent"
-      terraform_version = "1.16.1"
+      terraform_version = var.terraform_version
       auto_apply        = true
       vcs_connected     = true
-      trigger_patterns  = []
+      trigger_patterns  = ["terraform/infrastructure/**/*"]
       vault_run_role    = "tfc-backblaze"
     }
     "openbao" = {
       description       = "OpenBao secrets engine, ESO Kubernetes auth, and TFC workload-identity auth"
       working_directory = "terraform/openbao"
       execution_mode    = "agent"
-      terraform_version = "1.16.1"
+      terraform_version = var.terraform_version
       auto_apply        = true
       vcs_connected     = true
       trigger_patterns  = ["terraform/openbao/**/*"]
@@ -46,7 +46,7 @@ locals {
       description       = "Pocket ID OIDC users, groups, and clients"
       working_directory = "terraform/pocket-id"
       execution_mode    = "agent"
-      terraform_version = "1.16.1"
+      terraform_version = var.terraform_version
       auto_apply        = true
       vcs_connected     = true
       trigger_patterns  = ["terraform/pocket-id/**/*"]
@@ -56,7 +56,7 @@ locals {
       description       = "Talos bare-metal control plane cluster bootstrap and config"
       working_directory = "terraform/talos"
       execution_mode    = "agent"
-      terraform_version = "1.16.1"
+      terraform_version = var.terraform_version
       auto_apply        = true
       vcs_connected     = true
       trigger_patterns  = ["terraform/talos/**/*"]
@@ -66,7 +66,7 @@ locals {
       description       = "Terraform Cloud workspaces, agent pools, and workload-identity variables"
       working_directory = "terraform/tfe"
       execution_mode    = "agent"
-      terraform_version = "1.16.1"
+      terraform_version = var.terraform_version
       auto_apply        = true
       vcs_connected     = true
       trigger_patterns  = ["terraform/tfe/**/*"]
