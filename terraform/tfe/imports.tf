@@ -37,6 +37,41 @@ import {
   id = "eggenberg-homelab/tfe"
 }
 
+import {
+  to = tfe_workspace_settings.this["cloudflare"]
+  id = "eggenberg-homelab/cloudflare"
+}
+
+import {
+  to = tfe_workspace_settings.this["github"]
+  id = "eggenberg-homelab/github"
+}
+
+import {
+  to = tfe_workspace_settings.this["backblaze"]
+  id = "eggenberg-homelab/backblaze"
+}
+
+import {
+  to = tfe_workspace_settings.this["openbao"]
+  id = "eggenberg-homelab/openbao"
+}
+
+import {
+  to = tfe_workspace_settings.this["pocket-id"]
+  id = "eggenberg-homelab/pocket-id"
+}
+
+import {
+  to = tfe_workspace_settings.this["eggenberg-talos-cluster"]
+  id = "eggenberg-homelab/eggenberg-talos-cluster"
+}
+
+import {
+  to = tfe_workspace_settings.this["tfe"]
+  id = "eggenberg-homelab/tfe"
+}
+
 # Workload-identity env vars already set manually in TFC — imported so this
 # stack adopts them instead of colliding on create.
 import {

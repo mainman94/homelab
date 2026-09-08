@@ -83,14 +83,11 @@ resource "tfe_workspace" "this" {
   description  = each.value.description
 
   working_directory      = each.value.working_directory
-  execution_mode         = each.value.execution_mode
   terraform_version      = each.value.terraform_version
   auto_apply             = each.value.auto_apply
   auto_apply_run_trigger = each.value.auto_apply
   queue_all_runs         = false
   trigger_patterns       = each.value.trigger_patterns
-
-  agent_pool_id = each.value.execution_mode == "agent" ? var.agent_pool_id : null
 
   dynamic "vcs_repo" {
     for_each = each.value.vcs_connected ? [1] : []
@@ -100,4 +97,14 @@ resource "tfe_workspace" "this" {
       ingress_submodules         = false
     }
   }
+}
+
+# execution_mode/agent_pool_id live here instead of on tfe_workspace directly;
+# that inline attribute is deprecated by the provider in favor of this resource.
+resource "tfe_workspace_settings" "this" {
+  for_each = local.workspaces
+
+  workspace_id   = tfe_workspace.this[each.key].id
+  execution_mode = each.value.execution_mode
+  agent_pool_id  = each.value.execution_mode == "agent" ? var.agent_pool_id : null
 }
