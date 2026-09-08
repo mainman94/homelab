@@ -11,8 +11,8 @@ Manages HCP Terraform / Terraform Cloud workspaces, execution settings, agent po
 | `backblaze` | `terraform/infrastructure` | Agent (`homelab-eggenberg`) | `tfc-backblaze` |
 | `openbao` | `terraform/openbao` | Agent (`homelab-eggenberg`) | — |
 | `pocket-id` | `terraform/pocket-id` | Agent (`homelab-eggenberg`) | `tfc-pocket-id` |
-| `eggenberg-talos-cluster` | `terraform/talos` | Local / Workstation | — |
-| `tfe` | `terraform/tfe` | Remote | — |
+| `eggenberg-talos-cluster` | `terraform/talos` | Agent (`homelab-eggenberg`) | — |
+| `tfe` | `terraform/tfe` | Agent (`homelab-eggenberg`) | — |
 
 ## Workload Identity Environment Variables
 
