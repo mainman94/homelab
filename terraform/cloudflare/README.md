@@ -64,7 +64,10 @@ these paths; see [`../openbao/tfc-vault-auth.tf`](../openbao/tfc-vault-auth.tf).
 
 The `cloudflare_ruleset.firewall_custom` resource in [main.tf](main.tf) manages the
 zone's `http_request_firewall_custom` phase. It currently holds a single rule that
-blocks requests to `*.hauptmann.dev` whose source country is not `AT`.
+blocks requests to `*.hauptmann.dev` whose source country is not `AT`, except for
+Umami's tracking script and collect endpoint (`umami.hauptmann.dev/script.js` and
+`/api/send`), which stay reachable from any country so analytics reflect real
+visitor traffic instead of only AT.
 
 The rule list is managed exhaustively: a rule removed from `main.tf` is removed from
 the zone on the next apply, so add new custom rules there rather than in the
