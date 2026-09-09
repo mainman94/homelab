@@ -10,7 +10,7 @@
 [tools]
 # Terraform, not OpenTofu: four stacks use `ephemeral` blocks, a
 # Terraform >= 1.10 feature OpenTofu does not implement.
-terraform = "1.16.1"
+terraform = "1.16.2"
 tflint = "0.64.0"
 
 # pre-commit builds the rest of the hook toolchain — yamlfmt, shfmt,
