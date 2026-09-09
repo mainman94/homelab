@@ -11,6 +11,7 @@ locals {
       vcs_connected     = true
       trigger_patterns  = ["terraform/cloudflare/**/*"]
       vault_run_role    = "tfc-cloudflare"
+      tags              = ["networking"]
     }
     "github" = {
       description       = "GitHub organization repositories and rulesets governance"
@@ -21,6 +22,7 @@ locals {
       vcs_connected     = true
       trigger_patterns  = ["terraform/github/**/*"]
       vault_run_role    = "tfc-github"
+      tags              = ["governance"]
     }
     "backblaze" = {
       description       = "Backblaze B2 storage buckets and credentials"
@@ -31,6 +33,7 @@ locals {
       vcs_connected     = true
       trigger_patterns  = ["terraform/infrastructure/**/*"]
       vault_run_role    = "tfc-backblaze"
+      tags              = ["storage"]
     }
     "openbao" = {
       description       = "OpenBao secrets engine, ESO Kubernetes auth, and TFC workload-identity auth"
@@ -41,6 +44,7 @@ locals {
       vcs_connected     = true
       trigger_patterns  = ["terraform/openbao/**/*"]
       vault_run_role    = null
+      tags              = ["secrets"]
     }
     "pocket-id" = {
       description       = "Pocket ID OIDC users, groups, and clients"
@@ -51,6 +55,7 @@ locals {
       vcs_connected     = true
       trigger_patterns  = ["terraform/pocket-id/**/*"]
       vault_run_role    = "tfc-pocket-id"
+      tags              = ["identity"]
     }
     "eggenberg-talos-cluster" = {
       description       = "Talos bare-metal control plane cluster bootstrap and config"
@@ -61,6 +66,7 @@ locals {
       vcs_connected     = true
       trigger_patterns  = ["terraform/talos/**/*"]
       vault_run_role    = null
+      tags              = ["compute"]
     }
     "tfe" = {
       description       = "Terraform Cloud workspaces, agent pools, and workload-identity variables"
@@ -71,6 +77,7 @@ locals {
       vcs_connected     = true
       trigger_patterns  = ["terraform/tfe/**/*"]
       vault_run_role    = null
+      tags              = ["meta"]
     }
   }
 }
@@ -88,6 +95,7 @@ resource "tfe_workspace" "this" {
   auto_apply_run_trigger = each.value.auto_apply
   queue_all_runs         = false
   trigger_patterns       = each.value.trigger_patterns
+  tag_names              = each.value.tags
 
   dynamic "vcs_repo" {
     for_each = each.value.vcs_connected ? [1] : []
