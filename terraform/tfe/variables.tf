@@ -33,3 +33,9 @@ variable "terraform_version" {
   type        = string
   default     = "1.16.1"
 }
+
+variable "module_repo_identifier" {
+  description = "GitHub repository identifier holding the private Terraform modules, in 'org/repo' format"
+  type        = string
+  default     = "mainman94/homelab-terraform-modules"
+}
