@@ -1,6 +1,6 @@
 # GitHub Root Stack
 
-This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homelab-terraform-modules`, `mainman94/multi-k8s-infra`, `mainman94/portfolio`, `mainman94/portfolio-performance`, `mainman94/pp-portfolio-classifier`, `mainman94/dev-config`, and `mainman94/docker-stack` via the shared GitHub module.
+This stack manages the GitHub repositories `mainman94/homelab`, `mainman94/homelab-terraform-modules`, `mainman94/multi-k8s-infra`, `mainman94/portfolio`, `mainman94/portfolio-performance`, `mainman94/.agents`, `mainman94/pp-portfolio-classifier`, `mainman94/dev-config`, and `mainman94/docker-stack` via the shared GitHub module.
 
 ## Module versioning
 
@@ -31,6 +31,7 @@ only lists what differs per repository.
 | `mainman94` | public | — | profile README repository |
 | `portfolio` | private | — | rulesets need GitHub Pro on private repos |
 | `portfolio-performance` | private | — | rulesets need GitHub Pro on private repos |
+| `.agents` | private | — | rulesets need GitHub Pro on private repos |
 | `beartainer` | public | — | archived; GitHub rejects writes, values mirror the repository |
 
 Every repository owned by `mainman94` is managed here — there is no
