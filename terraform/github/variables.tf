@@ -280,6 +280,14 @@ variable "repositories" {
 
       has_projects = true
     }
+    agents = {
+      name        = ".agents"
+      description = "Private agent configuration"
+      visibility  = "private"
+
+      has_projects = false
+      has_wiki     = false
+    }
     pp_portfolio_classifier = {
       name        = "pp-portfolio-classifier"
       description = "Portfolio classifier rewrite in Go"
