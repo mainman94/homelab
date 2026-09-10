@@ -288,10 +288,12 @@ variable "repositories" {
       has_projects = false
       has_wiki     = false
 
-      # allow_forking defaults to true, but GitHub rejects that on a
-      # user-owned (non-org) private repository: "Allow forks setting can
-      # only be changed on org-owned private repositories".
-      allow_forking = false
+      # allow_forking defaults to true, but GitHub rejects any PATCH that
+      # touches this field on a user-owned (non-org) private repository —
+      # "Allow forks setting can only be changed on org-owned private
+      # repositories" — even when the desired value is false. null tells the
+      # module to omit the field entirely and leave it unmanaged.
+      allow_forking = null
 
       # The repo was created empty (no auto_init) and has no branches yet, so
       # there is nothing for github_branch_default to point at. Leave it null
