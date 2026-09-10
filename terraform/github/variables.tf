@@ -287,6 +287,11 @@ variable "repositories" {
 
       has_projects = false
       has_wiki     = false
+
+      # allow_forking defaults to true, but GitHub rejects that on a
+      # user-owned (non-org) private repository: "Allow forks setting can
+      # only be changed on org-owned private repositories".
+      allow_forking = false
     }
     pp_portfolio_classifier = {
       name        = "pp-portfolio-classifier"
