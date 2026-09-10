@@ -292,6 +292,12 @@ variable "repositories" {
       # user-owned (non-org) private repository: "Allow forks setting can
       # only be changed on org-owned private repositories".
       allow_forking = false
+
+      # The repo was created empty (no auto_init) and has no branches yet, so
+      # there is nothing for github_branch_default to point at. Leave it null
+      # until a first push exists; GitHub then sets the pushed branch as
+      # default on its own.
+      default_branch = null
     }
     pp_portfolio_classifier = {
       name        = "pp-portfolio-classifier"
