@@ -44,8 +44,7 @@ name: splunk-otel-collector-ingress
 portSelector:
   ports:
     - 13133
-protocol: tcp
+  protocol: tcp
 ingress:
   - subnet: 192.168.0.53/32
-    # Alternativ für ein ganzes Heimnetzwerk, z. B.:
-    # - subnet: 192.168.0.0/24
+  - subnet: 192.169.0.65/32
