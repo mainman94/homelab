@@ -37,3 +37,14 @@ cluster:
       name: none
   proxy:
     disabled: true
+---
+apiVersion: v1alpha1
+kind: NetworkRuleConfig
+name: splunk-otel-collector-ingress
+portSelector:
+  ports:
+    - 13133
+  protocol: tcp
+ingress:
+  - subnet: 192.168.0.53/32
+  - subnet: 192.169.0.65/32

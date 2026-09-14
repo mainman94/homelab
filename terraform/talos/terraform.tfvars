@@ -20,11 +20,11 @@ controlplane_nodes = {
     interface_mac = "bc:e9:2f:87:15:c4"
     address_cidr  = "192.168.0.65/24"
   },
-  cp3 = {
-    management_ip = "192.168.0.101"
-    #node_name     = "eggenberg-talos-cp1-elitedesk-2"
-    install_disk  = "dev/nvme0n1"
-    interface_mac = "c4:65:16:9a:21:4f"
-    address_cidr  = "192.168.0.101/24"
-  }
+  # cp3 = {
+  #   management_ip = "192.168.0.101"
+  #   #node_name     = "eggenberg-talos-cp1-elitedesk-2"
+  #   install_disk  = "dev/nvme0n1"
+  #   interface_mac = "c4:65:16:9a:21:4f"
+  #   address_cidr  = "192.168.0.101/24"
+  # }
 }
