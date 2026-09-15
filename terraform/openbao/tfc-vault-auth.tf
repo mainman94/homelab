@@ -26,6 +26,7 @@ locals {
     "cloudflare" = ["cloudflare", "pocket-id-cloudflare-access", "network"]
     "backblaze"  = ["backblaze"]
     "pocket-id"  = ["pocket-id", "pocket-id-users"]
+    "splunk"     = ["splunk"]
   }
 }
 

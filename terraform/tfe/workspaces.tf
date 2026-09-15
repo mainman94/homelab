@@ -68,6 +68,17 @@ locals {
       vault_run_role    = null
       tags              = ["compute"]
     }
+    "splunk" = {
+      description       = "Splunk Observability Cloud dashboards and dashboard groups"
+      working_directory = "terraform/splunk"
+      execution_mode    = "agent"
+      terraform_version = var.terraform_version
+      auto_apply        = true
+      vcs_connected     = true
+      trigger_patterns  = ["terraform/splunk/**/*"]
+      vault_run_role    = "tfc-splunk"
+      tags              = ["observability"]
+    }
     "tfe" = {
       description       = "Terraform Cloud workspaces, agent pools, and workload-identity variables"
       working_directory = "terraform/tfe"
