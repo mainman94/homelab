@@ -11,7 +11,7 @@ workspace: dashboard group and cluster-overview dashboard for
    collector does not have this).
 2. `bao kv patch homelab/prod/splunk ADMIN_ACCESS_TOKEN=<token>` — adds
    `ADMIN_ACCESS_TOKEN` alongside the existing `ACCESS_TOKEN` property.
-   The portfolio ExternalSecret maps the existing `ADMIN_TOKEN` property to
+   The portfolio ExternalSecret maps the existing `ADMIN_ACCESS_TOKEN` property to
    its server-side `SPLUNK_ACCESS_TOKEN`; no token value belongs in Git.
 3. Apply `terraform/tfe` first so the `splunk` workspace, its
    `TFC_VAULT_*` env vars, and the OpenBao `tfc-splunk` JWT role exist.
