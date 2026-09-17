@@ -134,7 +134,7 @@ resource "cloudflare_ruleset" "firewall_custom" {
       # whole hostname is carved out here rather than just those two paths.
       # status.hauptmann.dev is a public status page like the apex (which
       # the wildcard doesn't match), so it needs the same worldwide carve-out.
-      expression = "(not ip.src.country in {\"AT\"} and http.host strict wildcard r\"*.hauptmann.dev\" and not http.host in {\"umami.hauptmann.dev\", \"status.hauptmann.dev\"})"
+      expression = "(not ip.src.country in {\"AT\"} and http.host strict wildcard r\"*.hauptmann.dev\" and not http.host in {\"umami.hauptmann.dev\" \"status.hauptmann.dev\"})"
     }
   ]
 }
