@@ -83,6 +83,38 @@ resource "cloudflare_zone_dnssec" "default" {
   dnssec_multi_signer = true
 }
 
+# www.hauptmann.dev has no HTTPRoute in the cluster (only the bare apex and
+# other subdomains do) and isn't in a_records_hauptmann_dev, so it only
+# resolves via the wildcard DNS record with nothing to serve it. Redirect it
+# to the apex instead of letting it 404/GeoBlock. This phase runs before
+# http_request_firewall_custom, so the redirect fires for every visitor
+# regardless of country — no GeoBlock carve-out needed.
+resource "cloudflare_ruleset" "www_redirect" {
+  zone_id     = var.cloudflare_zone_id
+  name        = "default"
+  kind        = "zone"
+  phase       = "http_request_dynamic_redirect"
+  description = ""
+
+  rules = [
+    {
+      ref         = "www_to_apex"
+      description = "Redirect www to apex"
+      action      = "redirect"
+      expression  = "(http.host eq \"www.hauptmann.dev\")"
+      action_parameters = {
+        from_value = {
+          status_code           = 301
+          preserve_query_string = true
+          target_url = {
+            expression = "concat(\"https://hauptmann.dev\", http.request.uri.path)"
+          }
+        }
+      }
+    }
+  ]
+}
+
 resource "cloudflare_ruleset" "firewall_custom" {
   zone_id     = var.cloudflare_zone_id
   name        = "default"
@@ -96,14 +128,13 @@ resource "cloudflare_ruleset" "firewall_custom" {
       description = "GeoBlock"
       action      = "block"
       enabled     = true
-      # Umami's tracking script and collect endpoint are served to every
-      # visitor of hauptmann.dev, not just AT-based ones (see
-      # zero_trust.tf's access_public_paths) — without this carve-out the
-      # GeoBlock discards non-AT visits before Umami ever sees them, so
-      # analytics only ever show AT traffic. status.hauptmann.dev is a public
-      # status page like the apex (which the wildcard doesn't match), so it
-      # needs the same worldwide carve-out.
-      expression = "(not ip.src.country in {\"AT\"} and http.host strict wildcard r\"*.hauptmann.dev\" and not (http.host eq \"umami.hauptmann.dev\" and (http.request.uri.path eq \"/script.js\" or http.request.uri.path eq \"/api/send\")) and not http.host eq \"status.hauptmann.dev\")"
+      # Umami serves its tracking script and collect endpoint to every
+      # visitor of hauptmann.dev, not just AT-based ones, and its dashboard
+      # is already gated by Cloudflare Access (see zero_trust.tf) — so the
+      # whole hostname is carved out here rather than just those two paths.
+      # status.hauptmann.dev is a public status page like the apex (which
+      # the wildcard doesn't match), so it needs the same worldwide carve-out.
+      expression = "(not ip.src.country in {\"AT\"} and http.host strict wildcard r\"*.hauptmann.dev\" and not http.host in {\"umami.hauptmann.dev\", \"status.hauptmann.dev\"})"
     }
   ]
 }
