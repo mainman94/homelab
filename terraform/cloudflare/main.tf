@@ -128,13 +128,14 @@ resource "cloudflare_ruleset" "firewall_custom" {
       description = "GeoBlock"
       action      = "block"
       enabled     = true
-      # Umami serves its tracking script and collect endpoint to every
-      # visitor of hauptmann.dev, not just AT-based ones, and its dashboard
-      # is already gated by Cloudflare Access (see zero_trust.tf) — so the
-      # whole hostname is carved out here rather than just those two paths.
-      # status.hauptmann.dev is a public status page like the apex (which
-      # the wildcard doesn't match), so it needs the same worldwide carve-out.
-      expression = "(not ip.src.country in {\"AT\"} and http.host strict wildcard r\"*.hauptmann.dev\" and not http.host in {\"umami.hauptmann.dev\", \"status.hauptmann.dev\"})"
+      # Umami's tracking script and collect endpoint are served to every
+      # visitor of hauptmann.dev, not just AT-based ones (see
+      # zero_trust.tf's access_public_paths) — without this carve-out the
+      # GeoBlock discards non-AT visits before Umami ever sees them, so
+      # analytics only ever show AT traffic. status.hauptmann.dev is a public
+      # status page like the apex (which the wildcard doesn't match), so it
+      # needs the same worldwide carve-out.
+      expression = "(not ip.src.country in {\"AT\"} and http.host strict wildcard r\"*.hauptmann.dev\" and not (http.host eq \"umami.hauptmann.dev\" and (http.request.uri.path eq \"/script.js\" or http.request.uri.path eq \"/api/send\")) and not http.host eq \"status.hauptmann.dev\")"
     }
   ]
 }
