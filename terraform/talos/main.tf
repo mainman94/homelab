@@ -22,7 +22,7 @@ locals {
     name => trimspace(<<-EOT
       apiVersion: v1alpha1
       kind: HostnameConfig
-      auto: disabled
+      auto: off
     EOT
     )
     if try(node.node_name, null) != null
