@@ -16,13 +16,14 @@ locals {
   }
 
   # Static machine.network.hostname conflicts with the default HostnameConfig
-  # auto-generation doc unless it's explicitly disabled.
+  # auto-generation doc. Delete the doc rather than setting auto: off, which the
+  # v1alpha1 validator rejects with "static hostname is already set".
   controlplane_hostname_config_patches = {
     for name, node in var.controlplane_nodes :
     name => trimspace(<<-EOT
       apiVersion: v1alpha1
       kind: HostnameConfig
-      auto: off
+      $patch: delete
     EOT
     )
     if try(node.node_name, null) != null
