@@ -102,7 +102,6 @@ data "talos_machine_configuration" "controlplane" {
     local.common_patch,
     local.controlplane_link_alias_patches[each.key],
     local.controlplane_patches[each.key],
-    try(local.controlplane_hostname_config_patches[each.key], ""),
   ])
 }
 
