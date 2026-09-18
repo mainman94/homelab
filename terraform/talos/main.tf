@@ -15,19 +15,6 @@ locals {
     )
   }
 
-  # Static machine.network.hostname conflicts with the default HostnameConfig
-  # auto-generation doc unless it's explicitly disabled.
-  controlplane_hostname_config_patches = {
-    for name, node in var.controlplane_nodes :
-    name => trimspace(<<-EOT
-      apiVersion: v1alpha1
-      kind: HostnameConfig
-      auto: off
-    EOT
-    )
-    if try(node.node_name, null) != null
-  }
-
   controlplane_patches = {
     for name, node in var.controlplane_nodes :
     name => yamlencode({
@@ -115,7 +102,6 @@ data "talos_machine_configuration" "controlplane" {
     local.common_patch,
     local.controlplane_link_alias_patches[each.key],
     local.controlplane_patches[each.key],
-    try(local.controlplane_hostname_config_patches[each.key], ""),
   ])
 }
 
