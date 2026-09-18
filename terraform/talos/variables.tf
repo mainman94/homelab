@@ -22,13 +22,13 @@ variable "gateway" {
 variable "talos_version" {
   description = "Talos version used for the factory installer image."
   type        = string
-  default     = "v1.13.10"
+  default     = "v1.14.1"
 }
 
 variable "kubernetes_version" {
   description = "Target Kubernetes version."
   type        = string
-  default     = "v1.36.3"
+  default     = "v1.36.4"
 }
 
 # Declared alongside common_config_patch_file for symmetry; the schematic is
