@@ -49,8 +49,13 @@ cluster:
 apiVersion: v1alpha1
 kind: TimeSyncConfig
 ntp:
+  # Three rotations of the Austrian pool rather than one: each name is a
+  # separate DNS rotation over the same set of servers, so a single one going
+  # stale no longer leaves the node with nothing to compare against.
   servers:
     - at.pool.ntp.org
+    - 0.at.pool.ntp.org
+    - 1.at.pool.ntp.org
 ---
 apiVersion: v1alpha1
 kind: NetworkRuleConfig
