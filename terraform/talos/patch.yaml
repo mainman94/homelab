@@ -49,13 +49,22 @@ cluster:
 apiVersion: v1alpha1
 kind: TimeSyncConfig
 ntp:
-  # Three rotations of the Austrian pool rather than one: each name is a
-  # separate DNS rotation over the same set of servers, so a single one going
-  # stale no longer leaves the node with nothing to compare against.
+  # Three rotations of the Austrian pool plus one named anchor. The pool names
+  # are separate DNS rotations over the same set of servers, so a single one
+  # going stale no longer leaves the node with nothing to compare against;
+  # ts1.aco.net is ACOnet's stratum 1, disciplined by GPS/Galileo, and is
+  # reachable without registering. It is in the Austrian pool too, so this only
+  # guarantees what the rotations might otherwise hand out by chance — which is
+  # the point: four sources is where NTP can still identify a falseticker after
+  # losing one.
+  #
+  # Not ts1/ts2.univie.ac.at: the ZID serves those to the university network
+  # only.
   servers:
     - at.pool.ntp.org
     - 0.at.pool.ntp.org
     - 1.at.pool.ntp.org
+    - ts1.aco.net
 ---
 apiVersion: v1alpha1
 kind: NetworkRuleConfig
