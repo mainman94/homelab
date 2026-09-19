@@ -23,16 +23,6 @@ output "system_extensions" {
   value       = local.resolved_extensions
 }
 
-output "talos_version" {
-  description = "Talos version this configuration targets."
-  value       = var.talos_version
-}
-
-output "kubernetes_version" {
-  description = "Kubernetes version this configuration targets."
-  value       = var.kubernetes_version
-}
-
 output "talos_endpoints" {
   description = "Talos API endpoints for the control plane nodes."
   value       = local.endpoints
