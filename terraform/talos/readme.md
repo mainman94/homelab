@@ -1,111 +1,176 @@
 # Talos Bare-Metal Bootstrap
 
-This directory is designed around a Terraform-first workflow for Talos on bare metal. It automates the generation of machine configurations, cluster secrets, and the initial bootstrap process.
+Terraform-first bootstrap for the bare-metal Talos control plane: it registers
+the Image Factory schematic, generates the cluster secrets and per-node machine
+configurations, applies them, bootstraps etcd and hands back a `talosconfig`
+and `kubeconfig`.
 
-It contains:
+| File                | What lives there                                        |
+| ------------------- | ------------------------------------------------------- |
+| `image.tf`          | Image Factory schematic and the asset URLs it produces  |
+| `config.tf`         | Shared and per-node config patches, config generation   |
+| `main.tf`           | Secrets, apply, bootstrap, health gate, kubeconfig      |
+| `patch.yaml`        | The shared cluster patch                                |
+| `variables.tf`      | Inputs, with the validation that guards the node map    |
+| `tests/`            | `terraform test` suite over that validation             |
 
-- the factory schematic embedded in [main.tf](main.tf)
-- the shared cluster patch in [patch.yaml](patch.yaml)
-- the Terraform configuration in [main.tf](main.tf)
+State is in Terraform Cloud; the runs happen from a workstation, because the
+nodes are on the LAN and a remote runner cannot reach them.
+
+## Versions
+
+| Component             | Pinned at | Where                          |
+| --------------------- | --------- | ------------------------------ |
+| Talos Linux           | `v1.14.1` | `var.talos_version`            |
+| Kubernetes            | `v1.36.4` | `var.kubernetes_version`       |
+| `siderolabs/talos`    | `~> 0.11.0` | `versions.tf`                |
+
+The provider constraint is `~> 0.11.0`, not `~> 0.11`. The provider is pre-1.0,
+so a minor bump is a breaking change — 0.12 replaces this resource set with
+`talos_machine` / `talos_cluster` — and `~> 0.11` would allow anything below
+1.0 and pull that in on the next `init -upgrade`.
+
+Kubernetes 1.37 is released and supported by Talos 1.14, which defaults to it.
+This stack stays on 1.36 because `kubernetes_version` is applied by
+`terraform apply`: bumping the minor upgrades the live cluster the moment the
+apply lands. Do it deliberately, on its own, not as a side effect of another
+change.
 
 ## Target topology
 
-The intended bare-metal cluster rollout follows a sequential approach for stability:
+Three control plane nodes, brought up one at a time:
 
-1. first `cp1` (Bootstrap node)
-2. then `cp2` (Join to cluster)
-3. then `cp3` (Establish etcd quorum)
+1. `cp1` — bootstraps etcd
+2. `cp2` — joins
+3. `cp3` — completes the quorum
 
-The target topology consists of 3 control-plane nodes to ensure high availability and etcd quorum.
+Workloads run on the control plane (`allowSchedulingOnControlPlanes`), so there
+are no separate workers.
 
 ## Technical baseline
 
-The schematic in [main.tf](main.tf) includes these essential extensions:
+The schematic in `image.tf` carries these official extensions:
 
-- `siderolabs/iscsi-tools`: Required for Longhorn and other storage providers.
-- `siderolabs/nfs-utils`: For NFS mount support.
-- `siderolabs/util-linux-tools`: General system utilities.
+- `siderolabs/iscsi-tools` — Longhorn and other iSCSI-backed storage
+- `siderolabs/nfs-utils` — NFS mounts
+- `siderolabs/util-linux-tools` — `fstrim` and friends, wanted by Longhorn
 
-The shared patch in [patch.yaml](patch.yaml) applies these global settings:
+They are listed in `var.system_extensions` and resolved against the factory for
+`var.talos_version` at plan time. An extension that does not exist for that
+version fails the plan rather than producing a schematic quietly missing it.
 
-- **NTP**: Configured via `at.pool.ntp.org`.
-- **CNI**: No built-in CNI (`cni: none`). You MUST install a CNI (e.g., Cilium) after bootstrap.
-- **Kube-proxy**: Disabled (`proxy.disabled: true`), intended for Cilium's kube-proxy replacement.
-- **Scheduling**: Enabled on control planes (`allowSchedulingOnControlPlanes: true`), allowing workloads to run on these nodes without manual taint removal.
+`patch.yaml` applies to every node:
+
+- **NTP** — `at.pool.ntp.org`, via a `TimeSyncConfig` document
+- **CNI** — none. Install Cilium after bootstrap; nodes stay `NotReady` until
+  you do
+- **kube-proxy** — disabled, for Cilium's kube-proxy replacement
+- **Scheduling** — allowed on control planes
+- **Metrics** — controller-manager, scheduler and etcd bind their metrics
+  listeners to the LAN so Prometheus can scrape them
+
+## Config document formats, and why most of this is still v1alpha1
+
+Talos 1.14 deprecates nearly all of the v1alpha1 `machine:` / `cluster:` tree
+in favour of single-purpose documents — `KubeSchedulerConfig`,
+`KubeControllerManagerConfig`, `KubeNodeConfig`, `KubeProxyConfig`,
+`EtcFileConfig`, `SysctlConfig`, `UnattendedInstall` and more.
+
+This stack cannot use them yet. `terraform-provider-talos` 0.11.0 embeds the
+Talos machinery **v1.13** SDK and parses every config patch before sending it,
+so a 1.14-only document is rejected at apply time with
+`error decoding document v1alpha1/<Kind>/` — the nodes never see it. The
+documents the 1.13 SDK does know, and which this stack therefore uses, are
+`LinkAliasConfig`, `HostnameConfig`, `TimeSyncConfig`, `NetworkRuleConfig`,
+`UserVolumeConfig` and `VolumeConfig`.
+
+The deprecated fields still work in Talos 1.14 — `talosctl validate` accepts the
+generated configuration for `metal` mode and warns only about
+`.machine.files`. When the provider ships a 1.14 SDK, the rest can move.
+
+Two places where this bites, both handled:
+
+- **Hostname.** The generated base config already contains a `HostnameConfig`
+  document with `auto: stable`. Setting `machine.network.hostname` as well
+  makes Talos 1.14 reject the configuration outright — *static hostname is
+  already set in v1alpha1 config*. `config.tf` patches the document instead,
+  and turns `auto` off in the same patch, because documents merge field by
+  field and leaving `auto: stable` in place trips *auto and hostname cannot be
+  set at the same time*.
+- **Data disks.** `machine.disks` is deprecated in favour of
+  `UserVolumeConfig`, and is kept anyway — see below.
+
+### Migrating the data disk to `UserVolumeConfig`
+
+`UserVolumeConfig` provisions a partition labelled `u-<name>`, mounted at
+`/var/mnt/<name>`. That is **not** the layout `machine.disks` produced, so
+switching in place reformats the disk and destroys whatever Longhorn has on
+it. It is a data migration, not a config change:
+
+1. Confirm Longhorn has healthy replicas of every volume on other nodes.
+2. Cordon and drain the node, and let Longhorn rebuild elsewhere.
+3. Drop `data_disk` for that node, apply, and wipe the disk
+   (`talosctl -n <node> wipe disk <device>`).
+4. Add the `UserVolumeConfig` document for the node, apply, and let Longhorn
+   rebuild onto it.
+
+Repeat per node. Until the provider can express the rest of the 1.14 document
+set, there is little reason to rush it.
 
 ## Prerequisites
 
-You need the following tools and infrastructure:
-
-- `terraform`
-- `talosctl`
-- `kubectl`
+- `terraform` (>= 1.9 — `variables.tf` uses cross-variable validation)
+- `talosctl`, `kubectl`, `helm`
 - 1 to 3 bare-metal servers
-- A static network environment with a Reserved API VIP (e.g., `192.168.0.10`)
+- A free address on the node subnet reserved for the API VIP
 
-## Networking & `lan0` Alias
-
-The Terraform configuration uses a stable device alias `lan0`. It maps the physical NIC to this alias using the `interface_mac` provided in your variables. This ensures that even if OS-level device names change, the Talos configuration remains stable.
-
-## Factory ID from the schematic
-
-The Terraform configuration defines the schematic directly in [main.tf](main.tf) and uses the Talos provider to generate the factory ID via `talos_image_factory_schematic`.
-
-You do not need to manage `schematic_id` manually. The Terraform output will display the `schematic_id` and the generated `installer_image`:
-
-```bash
-terraform output schematic_id
-terraform output installer_image
-```
-
-If you modify the schematic in `main.tf`, Terraform will generate a new factory ID automatically.
-
-## Step 1: Define Your Environment
-
-Create your local configuration:
+## Step 1: Define your environment
 
 ```bash
 cp terraform.tfvars.example terraform.tfvars
 ```
 
-Initially define only `cp1` to establish the cluster. Ensure `install_disk` and `data_disk` use stable identifiers (prefer `/dev/disk/by-id/...`).
+Start with `cp1` alone. Prefer `/dev/disk/by-id/...` for both disks, and keep
+`interface_mac` lowercase — Talos compares it as a string, and an uppercase MAC
+leaves the node with no `lan0`, no address and no route. `terraform validate`
+catches that one, along with a VIP that collides with a node address, a reused
+MAC, and an install disk pointed at the data disk.
 
 ## Step 2: Boot `cp1`
 
-Boot `cp1` with the Talos factory ISO or via PXE. The installer image is built from the schematic defined in [main.tf](main.tf) and will be output after `terraform apply`.
-
-## Step 3: Terraform Apply & Bootstrap
-
 ```bash
 terraform init
+terraform apply -target=talos_image_factory_schematic.this
+terraform output -raw iso_url    # burn or mount this
+terraform output -raw pxe_url    # or boot it over the network
+```
+
+Both URLs come from the schematic, so they always match the extensions and the
+Talos version this stack is about to install.
+
+## Step 3: Apply and bootstrap
+
+```bash
 terraform apply
 ```
 
-This will:
+This registers the schematic, generates the secrets and machine
+configurations, applies them to each node, bootstraps etcd, waits for the
+control plane to come up, and exports `talosconfig` and `kubeconfig`.
 
-- Register the schematic and derive the installer image.
-- Generate cluster secrets and machine configs.
-- Apply config to `cp1` and trigger the bootstrap.
-- Export `talosconfig` and `kubeconfig` (marked as sensitive).
-
-## Step 4: Verify Access
+## Step 4: Verify access
 
 ```bash
 terraform output -raw talosconfig > talosconfig
 terraform output -raw kubeconfig > kubeconfig
 
-# Check Talos health
 talosctl --talosconfig ./talosconfig -n <cp1_ip> health
-
-# Check Kubernetes nodes
 KUBECONFIG=./kubeconfig kubectl get nodes
 ```
 
-Note: Nodes will stay `NotReady` until the CNI is installed.
+Nodes stay `NotReady` until the CNI is installed.
 
 ## Step 5: Install Cilium (CNI)
-
-Install Cilium with kube-proxy replacement. This setup uses KubePrism (accessing the API via `localhost:7445`).
 
 ```bash
 helm repo add cilium https://helm.cilium.io/
@@ -127,128 +192,112 @@ KUBECONFIG=./kubeconfig helm upgrade --install cilium cilium/cilium \
   --set l2announcements.enabled=true
 ```
 
-## Step 6: Install Longhorn (Storage)
+`k8sServiceHost=localhost:7445` is KubePrism, enabled in `patch.yaml`.
 
-Prepare the namespace and install Longhorn:
+## Step 6: Install Longhorn (storage)
 
 ```bash
 KUBECONFIG=./kubeconfig kubectl create namespace longhorn-system
 KUBECONFIG=./kubeconfig kubectl label namespace longhorn-system \
-  pod-security.kubernetes.io/enforce=privileged \
-  --overwrite
+  pod-security.kubernetes.io/enforce=privileged --overwrite
 
-KUBECONFIG=./kubeconfig helm repo add longhorn https://charts.longhorn.io
+helm repo add longhorn https://charts.longhorn.io
 KUBECONFIG=./kubeconfig helm upgrade --install longhorn longhorn/longhorn \
   --namespace longhorn-system \
   --set defaultSettings.defaultDataPath=/var/mnt/longhorn \
   --set defaultSettings.defaultReplicaCount=3
 ```
 
-## Step 7: Scaling the Cluster
+## Step 7: Scale out
 
-Once `cp1` is healthy, add `cp2` and `cp3` to your `terraform.tfvars`. Boot them with the factory image and run `terraform apply`. Terraform will handle the configuration application and cluster join process.
+Add `cp2` and `cp3` to `terraform.tfvars`, boot them from the same ISO, and
+apply. Terraform generates and applies their configuration and they join.
 
 ## Operations
 
+### The health gate
+
+`data.talos_cluster_health` sits between the bootstrap and the kubeconfig, so
+the kubeconfig is only fetched once etcd and the API server are up. Kubernetes
+checks are skipped — with `cni: none` they cannot pass until Cilium is
+installed.
+
+It reads on every plan, which means every plan wants the control plane
+reachable. When a node is deliberately down:
+
+```bash
+terraform plan -var wait_for_cluster_health=false
+```
+
 ### Upgrading Talos
 
-To upgrade Talos to a new version:
+`terraform apply` does **not** upgrade a running node. It changes
+`machine.install.image`, which only takes effect on the next install. Use
+`talosctl upgrade`, one node at a time:
 
-1. Update the `talos_version` in `variables.tf`:
+```bash
+# 1. Bump the pin
+#    talos_version in variables.tf (or terraform.tfvars)
 
-   ```bash
-   # Update talos_version in variables.tf
-   sed -i 's/default = "v1.12.x"/default = "v1.13.0"/' variables.tf
-   ```
+# 2. Let Terraform resolve the new schematic and installer
+terraform apply
 
-2. Run `terraform plan` to see the new installer image:
+# 3. Roll the nodes, waiting for health between each
+INSTALLER=$(terraform output -raw installer_image)
+for node in $(terraform output -json talos_endpoints | jq -r '.[]'); do
+  talosctl --talosconfig ./talosconfig upgrade --nodes "$node" --image "$INSTALLER"
+  talosctl --talosconfig ./talosconfig -n "$node" health
+done
+```
 
-   ```bash
-   terraform plan
-   ```
+`apply_mode = "staged_if_needing_reboot"` means step 2 does not reboot
+anything: a change that needs a reboot is staged and picked up by the upgrade
+in step 3.
 
-3. Get the new installer image from the Terraform output:
-
-   ```bash
-   terraform output -raw installer_image
-   # Output: factory.talos.dev/metal-installer/<schematic>:v1.13.3
-   ```
-
-4. **Use `talosctl upgrade` instead of `terraform apply`** for a controlled, one-node-at-a-time upgrade:
-
-   ```bash
-   # Replace with your node IPs
-   INSTALLER_IMAGE=$(terraform output -raw installer_image)
-
-   # Upgrade each control plane node sequentially
-   talosctl --talosconfig ./talosconfig upgrade \
-     --nodes 192.168.0.53 \
-     --image "$INSTALLER_IMAGE"
-
-   talosctl --talosconfig ./talosconfig upgrade \
-     --nodes 192.168.0.65 \
-     --image "$INSTALLER_IMAGE"
-
-   talosctl --talosconfig ./talosconfig upgrade \
-     --nodes 192.168.0.101 \
-     --image "$INSTALLER_IMAGE"
-   ```
-
-5. Verify the upgrade on each node:
-
-   ```bash
-   talosctl --talosconfig ./talosconfig -n 192.168.0.53 version
-   # Should show the new Talos version
-   ```
-
-6. After all nodes are upgraded, run `terraform apply` to update the state:
-   ```bash
-   terraform apply
-   ```
+Bumping `talos_version` also moves the machine configuration *contract* the
+provider generates against, which is pinned to the same variable. Read the
+plan diff before applying it.
 
 ### Upgrading Kubernetes
 
-To upgrade Kubernetes, update the `kubernetes_version` in `variables.tf`:
-
 ```bash
-sed -i 's/default = "v1.35.x"/default = "v1.36.0"/' variables.tf
+# kubernetes_version in variables.tf (or terraform.tfvars)
 terraform apply
 ```
 
-This will update the Kubernetes components on all nodes. Monitor the upgrade using `kubectl`.
+This one does act immediately: Terraform rewrites the control plane component
+versions and Talos rolls them. One minor at a time, and check the Kubernetes
+release notes first.
 
-### Extensions
+### Changing extensions
 
-To add or remove system extensions, modify the `schematic` block in [main.tf](main.tf). Find the `talos_image_factory_schematic` resource:
+Edit `var.system_extensions`. `terraform plan` resolves the names against the
+factory, produces a new schematic ID and a new installer image; an extension
+that does not exist for `talos_version` fails the plan. Rolling it out to
+running nodes is the `talosctl upgrade` procedure above — the installer image
+is what carries extensions.
 
-```hcl
-resource "talos_image_factory_schematic" "this" {
-  schematic = yamlencode({
-    customization = {
-      systemExtensions = {
-        officialExtensions = [
-          "siderolabs/iscsi-tools",
-          "siderolabs/nfs-utils",
-          "siderolabs/util-linux-tools"
-        ]
-      }
-    }
-  })
-}
-```
+### Rotating nothing by accident
 
-Add or remove extension IDs from the `officialExtensions` list. After modifying, run:
+`talos_machine_secrets` holds the cluster CAs, the bootstrap token and the
+encryption secrets. It is the one resource in this stack that must never be
+replaced: replacing it is a new cluster. `talos_version` on that resource is a
+plain in-place attribute and does not rotate anything.
+
+## Tests
 
 ```bash
-terraform plan
-# Review the new installer_image and schematic_id
-terraform apply
+make test STACK=talos     # or: terraform test
 ```
 
-Then follow the Talos upgrade procedure to roll out the new extensions to your nodes.
+`tests/validation.tftest.hcl` covers the node map and the cluster-level
+values with `mock_provider`, so it needs no credentials and touches nothing.
 
-### Maintenance
-
-- Use `talosctl` for deep debugging and node operations.
-- Use `kubectl` for cluster management.
-- The source of truth for node configuration remains this Terraform project.
+This is also why `main.tf` uses data sources rather than the provider's
+ephemeral resources: Terraform cannot mock ephemeral resource types, so the
+first `ephemeral` block in this stack takes the whole suite down with it — the
+same wall the `github` stack hit. The state already holds
+`talos_machine_secrets`, so routing the rendered config around state would
+remove a second copy of material that is in there regardless. Catching a
+machine configuration bound for the wrong host is worth more. Worth revisiting
+when Terraform can mock ephemerals.

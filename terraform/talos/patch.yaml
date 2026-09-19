@@ -1,7 +1,13 @@
+# Shared configuration applied to every control plane node, on top of the
+# generated base config and before the per-node patches in config.tf.
+#
+# On document formats: Talos 1.14 deprecates the v1alpha1 `machine:` /
+# `cluster:` fields below in favour of single-purpose documents, but
+# terraform-provider-talos 0.11 embeds the Talos machinery v1.13 SDK and
+# rejects any document that SDK does not know — so the replacements are not
+# reachable from here yet. The one that is, TimeSyncConfig, is used below.
+# config.tf and readme.md have the detail.
 machine:
-  time:
-    servers:
-      - at.pool.ntp.org
   features:
     kubePrism:
       enabled: true
@@ -37,6 +43,28 @@ cluster:
       name: none
   proxy:
     disabled: true
+---
+# Replaces the deprecated `machine.time`. Talos rejects a config that sets
+# both, so the v1alpha1 block above must stay gone.
+apiVersion: v1alpha1
+kind: TimeSyncConfig
+ntp:
+  # Three rotations of the Austrian pool plus one named anchor. The pool names
+  # are separate DNS rotations over the same set of servers, so a single one
+  # going stale no longer leaves the node with nothing to compare against;
+  # ts1.aco.net is ACOnet's stratum 1, disciplined by GPS/Galileo, and is
+  # reachable without registering. It is in the Austrian pool too, so this only
+  # guarantees what the rotations might otherwise hand out by chance — which is
+  # the point: four sources is where NTP can still identify a falseticker after
+  # losing one.
+  #
+  # Not ts1/ts2.univie.ac.at: the ZID serves those to the university network
+  # only.
+  servers:
+    - at.pool.ntp.org
+    - 0.at.pool.ntp.org
+    - 1.at.pool.ntp.org
+    - ts1.aco.net
 ---
 apiVersion: v1alpha1
 kind: NetworkRuleConfig

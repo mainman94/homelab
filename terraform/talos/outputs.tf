@@ -1,15 +1,40 @@
-output "installer_image" {
-  description = "Talos factory installer image derived from the schematic ID."
-  value       = local.install_image
-}
-
 output "schematic_id" {
-  description = "Factory schematic ID generated from schematic.yaml."
+  description = "Image Factory schematic ID for the resolved system extensions."
   value       = talos_image_factory_schematic.this.id
 }
 
+output "installer_image" {
+  description = "Installer image to pass to `talosctl upgrade --image`."
+  value       = data.talos_image_factory_urls.this.urls.installer
+}
+
+output "iso_url" {
+  description = "Factory ISO for this schematic — what to boot a new node from."
+  value       = data.talos_image_factory_urls.this.urls.iso
+}
+
+output "pxe_url" {
+  description = "Factory PXE boot script URL for this schematic."
+  value       = data.talos_image_factory_urls.this.urls.pxe
+}
+
+output "system_extensions" {
+  description = "System extensions baked into the installer, as the factory resolved them."
+  value       = local.resolved_extensions
+}
+
+output "talos_version" {
+  description = "Talos version this configuration targets."
+  value       = var.talos_version
+}
+
+output "kubernetes_version" {
+  description = "Kubernetes version this configuration targets."
+  value       = var.kubernetes_version
+}
+
 output "talos_endpoints" {
-  description = "Talos API endpoints used by the provider."
+  description = "Talos API endpoints for the control plane nodes."
   value       = local.endpoints
 }
 

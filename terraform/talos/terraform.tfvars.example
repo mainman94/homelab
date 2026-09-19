@@ -3,17 +3,23 @@ cluster_endpoint = "https://192.168.0.10:6443"
 cluster_vip      = "192.168.0.10"
 gateway          = "192.168.0.2"
 
-talos_version      = "v1.12.6"
-kubernetes_version = "v1.35.2"
+# Defaults live in variables.tf; override here only to pin something else.
+talos_version      = "v1.14.1"
+kubernetes_version = "v1.36.4"
 
+# Prefer /dev/disk/by-id/... over /dev/sdX: kernel device names are assigned in
+# discovery order and can move between boots.
+#
+# interface_mac must be lowercase — Talos compares it as a string, and an
+# uppercase MAC leaves the node with no network.
 controlplane_nodes = {
   cp1 = {
     management_ip        = "192.168.0.11"
     node_name            = "cp1"
-    install_disk         = "/dev/sdc"
+    install_disk         = "/dev/disk/by-id/ata-SOME-SSD_SERIAL"
     interface_mac        = "00:11:22:33:44:55"
     address_cidr         = "192.168.0.11/24"
-    data_disk            = "/dev/sdb"
+    data_disk            = "/dev/disk/by-id/ata-SOME-HDD_SERIAL"
     data_disk_mountpoint = "/var/mnt/longhorn"
   }
 }

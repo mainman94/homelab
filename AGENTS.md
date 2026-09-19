@@ -81,9 +81,10 @@ nothing. Renovate bumps the pins.
 `ephemeral "vault_kv_secret_v2"` block so the value never reaches state.
 `ephemeral` is a Terraform >= 1.10 feature that OpenTofu does not implement —
 `tofu validate` fails on those four with *"Blocks of type \"ephemeral\" are
-not expected here"*. Those stacks pin `required_version = ">= 1.10.0"`; the
-other three, which use no ephemeral blocks, stay at `>= 1.6.0` and do work
-under OpenTofu.
+not expected here"*. Those stacks pin `required_version = ">= 1.10.0"`.
+`talos` pins `>= 1.9.0` — it uses no ephemeral blocks, but its node-map
+validation references another variable, which is a 1.9 feature. The remaining
+two stay at `>= 1.6.0` and do work under OpenTofu.
 
 ## Automated checks
 
@@ -111,9 +112,21 @@ Terraform Cloud and validate does not need it, so the job needs no
 credentials.
 
 **`terraform test` covers `talos`.** `terraform/talos/tests/` pins the
-control-plane node map: `cp1` must exist (bootstrap and kubeconfig key off it)
-and the map must hold one to three nodes. It uses `mock_provider`, so it needs
-no credentials.
+control-plane node map and the cluster-level values: `cp1` must exist
+(bootstrap and kubeconfig key off it), the map must hold one to three nodes,
+and MACs, addresses, disks, mountpoints and the API VIP all have to be
+well-formed and not collide with each other. It uses `mock_provider`, so it
+needs no credentials.
+
+That suite is also why `talos` does **not** use the Talos provider's ephemeral
+resources, which 0.11 added for exactly this kind of stack. Terraform cannot
+mock ephemeral resource types, so the first `ephemeral` block there takes all
+of `tests/` down with it — the same wall the `github` stack hit, below. The
+state holds `talos_machine_secrets` either way, so keeping the rendered
+machine configuration out of state would remove a second copy of material
+that is in there regardless; catching a configuration bound for the wrong host
+is worth more. `terraform/talos/main.tf` carries the reasoning. Revisit if
+Terraform gains ephemeral mocking.
 
 **The `github` stack cannot be tested this way, and that is not an oversight.**
 Its `github` provider is configured from an `ephemeral "vault_kv_secret_v2"`
@@ -176,15 +189,21 @@ so without `-upgrade` a new ref is silently ignored and you plan the old module.
 
 ## Conventions
 
-- **Every stack pins `required_version = ">= 1.6.0"`** and every provider it
-  uses carries a version constraint in `required_providers`. A provider used
-  but not declared means Terraform silently installs whatever is newest.
+- **Every stack pins a `required_version` floor** — `>= 1.6.0` unless it uses
+  something newer, see the OpenTofu note above — **and every provider it uses
+  carries a version constraint in `required_providers`.** A provider used but
+  not declared means Terraform silently installs whatever is newest.
+- **A pre-1.0 provider is pinned to its minor**, `~> 0.11.0` rather than
+  `~> 0.11`. Below 1.0 a minor bump is a breaking change, and the looser form
+  allows everything up to 1.0: `siderolabs/talos` 0.12 replaces the resource
+  set `talos` uses with `talos_machine` / `talos_cluster`, and `~> 0.11` would
+  have pulled it in on the next `init -upgrade`.
 - **A declaration that is deliberately not wired up yet gets a
   `# tflint-ignore: terraform_unused_declarations` on the line directly above
   it, with a comment saying why.** The rule stays on so real dead code is
   still caught. Current cases: `kubernetes_worker_nodes` and
   `oci_containerengine_node_pool_option` in `oci-free-cloud-k8s` (the node-pool
-  layout is still fixed in `k8s.tf`), and `schematic_file` in `talos`.
+  layout is still fixed in `k8s.tf`).
 - **Secrets never land in the repo.** `kubeconfig`, `talosconfig` and
   `*.tfvars` are gitignored; values come from Terraform Cloud variables or the
   environment. `gitleaks` and `detect-private-key` are the backstop, not the
