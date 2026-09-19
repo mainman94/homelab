@@ -29,8 +29,7 @@ resource "local_file" "kube_config" {
   # Both pools: the kubeconfig is only useful once every node pool the
   # cluster is meant to have exists.
   depends_on = [
-    oci_containerengine_node_pool.k8s_node_pool_1,
-    oci_containerengine_node_pool.k8s_node_pool_2,
+    oci_containerengine_node_pool.k8s_node_pool,
   ]
   content         = data.oci_containerengine_cluster_kube_config.k8s_cluster_kube_config.content
   filename        = "../.kube.config"
@@ -58,52 +57,23 @@ data "oci_containerengine_node_pool_option" "node_pool_options" {
   compartment_id      = var.compartment_id
 }
 
-# Node Pool 1 (AD-verteilt, 1 Node)
-resource "oci_containerengine_node_pool" "k8s_node_pool_1" {
+# One single-node pool per availability domain, for HA across ADs. The two
+# pools were identical apart from the name and which AD they land in, so the
+# index is the only thing that varies: pool N sits in availability domain N.
+#
+# One node per pool on purpose — the Always Free tier allows four A1 OCPUs and
+# 24 GB in total, which is exactly two of these.
+resource "oci_containerengine_node_pool" "k8s_node_pool" {
+  for_each = toset(["1", "2"])
+
   cluster_id         = oci_containerengine_cluster.k8s_cluster.id
   compartment_id     = var.compartment_id
   kubernetes_version = var.kubernetes_version
-  name               = "k8s-node-pool-1"
-
-  node_config_details {
-    # Nur eine Placement Config pro Pool (oder loop über 1–2 ADs, aber einfach halten)
-    placement_configs {
-      availability_domain = data.oci_identity_availability_domains.ads.availability_domains[0].name # z. B. AD-1
-      subnet_id           = oci_core_subnet.vcn_private_subnet.id
-    }
-
-    size = 1 # Kritisch: Nur 1 Node!
-  }
-
-  node_shape = "VM.Standard.A1.Flex"
-
-  node_shape_config {
-    memory_in_gbs = 6
-    ocpus         = 2
-  }
-
-  node_source_details {
-    source_type = "image"
-    image_id    = data.oci_core_images.oracle_linux_arm.images[0].id
-  }
-
-  initial_node_labels {
-    key   = "name"
-    value = "k8s-cluster"
-  }
-}
-
-# Node Pool 2 (andere AD, 1 Node) – für HA
-resource "oci_containerengine_node_pool" "k8s_node_pool_2" {
-  # Fast identisch zu Pool 1
-  cluster_id         = oci_containerengine_cluster.k8s_cluster.id
-  compartment_id     = var.compartment_id
-  kubernetes_version = var.kubernetes_version
-  name               = "k8s-node-pool-2"
+  name               = "k8s-node-pool-${each.key}"
 
   node_config_details {
     placement_configs {
-      availability_domain = data.oci_identity_availability_domains.ads.availability_domains[1].name # z. B. AD-2
+      availability_domain = data.oci_identity_availability_domains.ads.availability_domains[tonumber(each.key) - 1].name
       subnet_id           = oci_core_subnet.vcn_private_subnet.id
     }
 
@@ -126,4 +96,16 @@ resource "oci_containerengine_node_pool" "k8s_node_pool_2" {
     key   = "name"
     value = "k8s-cluster"
   }
+}
+
+# The two pools already exist under their old addresses; this keeps them in
+# place instead of destroying and recreating every node.
+moved {
+  from = oci_containerengine_node_pool.k8s_node_pool_1
+  to   = oci_containerengine_node_pool.k8s_node_pool["1"]
+}
+
+moved {
+  from = oci_containerengine_node_pool.k8s_node_pool_2
+  to   = oci_containerengine_node_pool.k8s_node_pool["2"]
 }
