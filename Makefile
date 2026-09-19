@@ -2,8 +2,6 @@
 #
 # Runs happen in Terraform Cloud, so `plan`/`apply` here are for local
 # inspection and for the stacks driven from a workstation (talos, imports).
-# TF is `tofu` when OpenTofu is installed and `terraform` otherwise; override
-# with `make TF=terraform ...`.
 
 SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
@@ -94,18 +92,13 @@ lint-deep: ## tflint including provider rulesets (fetches plugins)
 		tflint --chdir=terraform/$$s --config="$(CURDIR)/.tflint.hcl"; \
 	done
 
+# `make scan TRIVY_ARGS=--exit-code=1` to fail on any finding.
+TRIVY_ARGS ?=
+
 .PHONY: scan
 scan: ## trivy config scan, the same one CI runs (advisory)
 	@command -v trivy >/dev/null || { echo "trivy not on PATH — see .devcontainer" >&2; exit 1; }
-	trivy config --ignorefile .trivyignore .
-
-.PHONY: scan-strict
-scan-strict: ## Same scan, but fail on any finding
-	@command -v trivy >/dev/null || { echo "trivy not on PATH — see .devcontainer" >&2; exit 1; }
-	trivy config --ignorefile .trivyignore --exit-code 1 .
-
-.PHONY: security
-security: scan ## Alias for scan
+	trivy config --ignorefile .trivyignore $(TRIVY_ARGS) .
 
 # --- ansible -----------------------------------------------------------------
 
