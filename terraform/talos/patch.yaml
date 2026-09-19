@@ -1,7 +1,13 @@
+# Shared configuration applied to every control plane node, on top of the
+# generated base config and before the per-node patches in config.tf.
+#
+# On document formats: Talos 1.14 deprecates the v1alpha1 `machine:` /
+# `cluster:` fields below in favour of single-purpose documents, but
+# terraform-provider-talos 0.11 embeds the Talos machinery v1.13 SDK and
+# rejects any document that SDK does not know — so the replacements are not
+# reachable from here yet. The one that is, TimeSyncConfig, is used below.
+# config.tf and readme.md have the detail.
 machine:
-  time:
-    servers:
-      - at.pool.ntp.org
   features:
     kubePrism:
       enabled: true
@@ -37,6 +43,14 @@ cluster:
       name: none
   proxy:
     disabled: true
+---
+# Replaces the deprecated `machine.time`. Talos rejects a config that sets
+# both, so the v1alpha1 block above must stay gone.
+apiVersion: v1alpha1
+kind: TimeSyncConfig
+ntp:
+  servers:
+    - at.pool.ntp.org
 ---
 apiVersion: v1alpha1
 kind: NetworkRuleConfig
