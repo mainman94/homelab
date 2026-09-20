@@ -49,14 +49,6 @@ data "oci_core_images" "oracle_linux_arm" {
   sort_order               = "DESC"
 }
 
-# Kept for the node-pool layout still to be driven from variables; see this
-# stack's README.
-# tflint-ignore: terraform_unused_declarations
-data "oci_containerengine_node_pool_option" "node_pool_options" {
-  node_pool_option_id = "all"
-  compartment_id      = var.compartment_id
-}
-
 # One single-node pool per availability domain, for HA across ADs. The two
 # pools were identical apart from the name and which AD they land in, so the
 # index is the only thing that varies: pool N sits in availability domain N.

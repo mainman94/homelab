@@ -15,15 +15,11 @@ variable "repositories" {
   type = map(object({
     name                            = string
     description                     = optional(string)
-    homepage_url                    = optional(string)
     visibility                      = optional(string, "public")
     topics                          = optional(set(string), [])
     has_issues                      = optional(bool, true)
     has_projects                    = optional(bool, false)
     has_wiki                        = optional(bool, false)
-    allow_merge_commit              = optional(bool)
-    allow_squash_merge              = optional(bool)
-    allow_rebase_merge              = optional(bool)
     allow_auto_merge                = optional(bool)
     delete_branch_on_merge          = optional(bool, true)
     allow_update_branch             = optional(bool)
@@ -47,12 +43,9 @@ variable "repositories" {
         bypass_mode = optional(string, "always")
       })), [])
       rules = object({
-        creation                = optional(bool)
-        update                  = optional(bool)
         deletion                = optional(bool)
         non_fast_forward        = optional(bool)
         required_linear_history = optional(bool)
-        required_signatures     = optional(bool)
         pull_request = optional(object({
           allowed_merge_methods             = optional(set(string), ["merge", "squash", "rebase"])
           dismiss_stale_reviews_on_push     = optional(bool, false)
