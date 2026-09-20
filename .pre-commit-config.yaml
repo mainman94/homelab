@@ -5,7 +5,7 @@
 # — validate, provider-aware tflint rules — pulls providers over the network
 # on every run and is too slow for a commit hook; it lives in the Makefile
 # (`make validate`) instead. `trivy` is likewise left to CI
-# (.github/workflows/trivy.yml) and `make security`.
+# (.github/workflows/trivy.yml) and `make scan`.
 #
 # Install once:  make hooks
 # Run manually:  make lint
