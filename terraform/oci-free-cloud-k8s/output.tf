@@ -7,10 +7,9 @@ output "public_subnet_id" {
 }
 
 # The stack runs two pools; this keeps the output a single id, as it has
-# always been declared. Use k8s_node_pool_2.id explicitly if the second one
-# is ever needed.
+# always been declared. Index the map for the second one if it is ever needed.
 output "node_pool_id" {
-  value = oci_containerengine_node_pool.k8s_node_pool_1.id
+  value = oci_containerengine_node_pool.k8s_node_pool["1"].id
 }
 
 output "kubernetes_version" {
