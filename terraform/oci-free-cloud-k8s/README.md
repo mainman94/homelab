@@ -28,7 +28,6 @@ Optional inputs with defaults include:
 
 - `region`
 - `kubernetes_version`
-- `kubernetes_worker_nodes`
 
 ## Usage
 
@@ -44,6 +43,6 @@ This stack uses the remote Terraform backend in the `eggenberg-homelab` organiza
 
 ## Notes
 
-- The node-pool layout is currently defined directly in [k8s.tf](k8s.tf) as two fixed pools rather than being driven by `kubernetes_worker_nodes`.
+- The node-pool layout is defined directly in [k8s.tf](k8s.tf) as two fixed pools.
 - The stack writes a kubeconfig file locally through the `local_file` resource, which is convenient for local use but should be reviewed carefully for remote-run workflows.
 - Network CIDRs and security-list rules are currently hard-coded in the root module.

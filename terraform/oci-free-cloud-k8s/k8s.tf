@@ -50,14 +50,6 @@ data "oci_core_images" "oracle_linux_arm" {
   sort_order               = "DESC"
 }
 
-# Kept for the node-pool layout still to be driven from variables; see this
-# stack's README.
-# tflint-ignore: terraform_unused_declarations
-data "oci_containerengine_node_pool_option" "node_pool_options" {
-  node_pool_option_id = "all"
-  compartment_id      = var.compartment_id
-}
-
 # Node Pool 1 (AD-verteilt, 1 Node)
 resource "oci_containerengine_node_pool" "k8s_node_pool_1" {
   cluster_id         = oci_containerengine_cluster.k8s_cluster.id
