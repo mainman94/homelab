@@ -13,6 +13,22 @@
 # the same wall the `github` stack hit, documented in AGENTS.md. Guarding
 # against a machine configuration going to the wrong host is worth more here
 # than de-duplicating a secret. Revisit when Terraform can mock ephemerals.
+#
+# On `talos_cluster`: provider 0.12 also adds this resource, which folds
+# bootstrap and health-gating into one. Not adopted here — it's new in this
+# same release with no documented `terraform import` path (unlike
+# talos_machine_bootstrap below, which explicitly supports importing an
+# already-bootstrapped node). Adding it fresh to state on an already-live
+# cluster risks it calling the bootstrap API again on create. `talos_machine`
+# below doesn't have that risk (config-apply is idempotent by design), which
+# is why it moved and this didn't.
+#
+# On parallelism: `talos_machine` has no equivalent to the old
+# `apply_mode = "staged_if_needing_reboot"`. A config change that needs a
+# reboot applies — and reboots — immediately, no staging. Combined with
+# `for_each` over up to three control-plane nodes, a default `terraform
+# apply` (parallelism 10) could reboot all three at once and take etcd
+# quorum with it. Always run this stack's applies with `-parallelism=1`.
 
 resource "talos_machine_secrets" "this" {
   talos_version = var.talos_version
@@ -25,18 +41,27 @@ data "talos_client_configuration" "this" {
   nodes                = local.endpoints
 }
 
-resource "talos_machine_configuration_apply" "controlplane" {
+resource "talos_machine" "controlplane" {
   for_each = var.controlplane_nodes
 
-  client_configuration        = talos_machine_secrets.this.client_configuration
-  machine_configuration_input = data.talos_machine_configuration.controlplane[each.key].machine_configuration
-  node                        = each.value.management_ip
+  node                  = each.value.management_ip
+  client_configuration  = talos_machine_secrets.this.client_configuration
+  machine_configuration = data.talos_machine_configuration.controlplane[each.key].machine_configuration
 
-  # Dry-runs the change and only stages it when it would need a reboot, so an
-  # unrelated edit cannot cycle all three control plane nodes mid-apply.
-  # Staged changes land on the next reboot, which for this cluster means the
-  # next `talosctl upgrade`.
-  apply_mode = "staged_if_needing_reboot"
+  # Same value already baked into machine.install.image in config.tf's
+  # controlplane_patches. Setting it here too is what makes a talos_version /
+  # system_extensions bump actually upgrade the running OS on the next
+  # `terraform apply`, instead of only changing what a fresh install would
+  # use — this is the Terraform-driven upgrade path; see "Upgrading Talos" in
+  # readme.md.
+  image = local.install_image
+
+  # `true` needs a kubeconfig, and wiring
+  # talos_cluster_kubeconfig.this.kubeconfig_raw in here would create
+  # talos_machine -> talos_cluster_kubeconfig -> talos_machine_bootstrap ->
+  # talos_machine, a dependency cycle Terraform refuses outright. Revisit if
+  # talos_cluster is ever adopted and the graph is restructured around it.
+  drain_on_upgrade = false
 }
 
 resource "talos_machine_bootstrap" "this" {
@@ -44,7 +69,7 @@ resource "talos_machine_bootstrap" "this" {
   client_configuration = talos_machine_secrets.this.client_configuration
 
   depends_on = [
-    talos_machine_configuration_apply.controlplane,
+    talos_machine.controlplane,
   ]
 }
 
