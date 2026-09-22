@@ -12,7 +12,7 @@ terraform {
       # resource set with `talos_machine` / `talos_cluster`. `~> 0.11` would
       # allow everything below 1.0 and pull that in on the next `init
       # -upgrade`; `~> 0.11.0` allows 0.11.x only.
-      version = "~> 0.11.0"
+      version = "~> 0.12.0"
     }
   }
 }
