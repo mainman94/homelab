@@ -49,7 +49,7 @@ repos:
 
   # ansible-lint brings its own ansible-core, so no system ansible needed.
   - repo: https://github.com/ansible/ansible-lint
-    rev: v26.8.0
+    rev: v26.9.0
     hooks:
       - id: ansible-lint
         files: ^ansible/
