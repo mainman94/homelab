@@ -17,18 +17,31 @@ and `kubeconfig`.
 State is in Terraform Cloud; the runs happen from a workstation, because the
 nodes are on the LAN and a remote runner cannot reach them.
 
+**Always apply this stack with `terraform apply -parallelism=1`.**
+`talos_machine` has no equivalent to the old `apply_mode =
+"staged_if_needing_reboot"` — a config change that needs a reboot applies, and
+reboots the node, immediately. With `controlplane` a `for_each` over up to
+three nodes, default parallelism could reboot all three control-plane nodes
+in the same apply and take etcd quorum with it.
+
 ## Versions
 
 | Component             | Pinned at | Where                          |
 | --------------------- | --------- | ------------------------------ |
 | Talos Linux           | `v1.14.1` | `var.talos_version`            |
 | Kubernetes            | `v1.36.4` | `var.kubernetes_version`       |
-| `siderolabs/talos`    | `~> 0.11.0` | `versions.tf`                |
+| `siderolabs/talos`    | `~> 0.12.0` | `versions.tf`                |
 
-The provider constraint is `~> 0.11.0`, not `~> 0.11`. The provider is pre-1.0,
-so a minor bump is a breaking change — 0.12 replaces this resource set with
-`talos_machine` / `talos_cluster` — and `~> 0.11` would allow anything below
-1.0 and pull that in on the next `init -upgrade`.
+The provider constraint is `~> 0.12.0`, not `~> 0.12`. The provider is
+pre-1.0, so a minor bump is a breaking change, and `~> 0.12` would allow
+anything below 1.0 and pull that in on the next `init -upgrade`.
+
+0.12 also added `talos_cluster`, meant to eventually replace
+`talos_machine_bootstrap` + `data.talos_cluster_health`. Not adopted here yet:
+it's new in this same release with no documented `terraform import` path for
+an already-bootstrapped cluster, unlike `talos_machine_bootstrap` (see
+"Operations" below), so adding it fresh to state risks re-triggering
+bootstrap. Revisit once the provider documents a migration path.
 
 Kubernetes 1.37 is released and supported by Talos 1.14, which defaults to it.
 This stack stays on 1.36 because `kubernetes_version` is applied by
@@ -231,28 +244,24 @@ terraform plan -var wait_for_cluster_health=false
 
 ### Upgrading Talos
 
-`terraform apply` does **not** upgrade a running node. It changes
-`machine.install.image`, which only takes effect on the next install. Use
-`talosctl upgrade`, one node at a time:
+`terraform apply` upgrades running nodes directly — `talos_machine.image` is
+set to the same installer image baked into `machine.install.image`, so a
+version bump changes both at once:
 
 ```bash
 # 1. Bump the pin
 #    talos_version in variables.tf (or terraform.tfvars)
 
-# 2. Let Terraform resolve the new schematic and installer
-terraform apply
-
-# 3. Roll the nodes, waiting for health between each
-INSTALLER=$(terraform output -raw installer_image)
-for node in $(terraform output -json talos_endpoints | jq -r '.[]'); do
-  talosctl --talosconfig ./talosconfig upgrade --nodes "$node" --image "$INSTALLER"
-  talosctl --talosconfig ./talosconfig -n "$node" health
-done
+# 2. Apply — resolves the new schematic/installer AND upgrades each node
+terraform apply -parallelism=1
 ```
 
-`apply_mode = "staged_if_needing_reboot"` means step 2 does not reboot
-anything: a change that needs a reboot is staged and picked up by the upgrade
-in step 3.
+`-parallelism=1` is what keeps this safe: `talos_machine` has no staging
+mode, so a node reboots as soon as its `apply` step runs. Parallelism 1 makes
+that sequential across the `for_each`, one control-plane node at a time,
+instead of risking all three at once. Watch health between nodes
+(`talosctl --talosconfig ./talosconfig -n <node> health`) if you want to
+abort before the next one starts.
 
 Bumping `talos_version` also moves the machine configuration *contract* the
 provider generates against, which is pinned to the same variable. Read the
