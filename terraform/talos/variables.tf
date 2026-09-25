@@ -61,19 +61,18 @@ variable "talos_version" {
 variable "machine_config_contract" {
   description = <<-EOT
     Version contract the base machine configuration is generated against,
-    separate from `talos_version` on purpose. A 1.14 contract generates the
-    multi-document config (KubePrismConfig, KubeProxyConfig,
-    UnattendedInstallConfig, ...), which Talos refuses alongside the v1alpha1
-    fields patch.yaml still sets, and which has no replacement for
-    `cluster.allowSchedulingOnControlPlanes` — so it stays on 1.13 until the
-    patches move to the new documents. Only major.minor matters.
+    separate from `talos_version` on purpose: a Talos upgrade does not need a
+    contract bump, and a contract bump changes the shape of the generated
+    config (1.14 moved the Kubernetes settings into single-purpose documents),
+    so patch.yaml and config.tf are written against this exact contract. Bump
+    it only together with them. Only major.minor matters.
   EOT
   type        = string
-  default     = "v1.13.0"
+  default     = "v1.14.0"
 
   validation {
     condition     = can(regex("^v[0-9]+[.][0-9]+[.][0-9]+$", var.machine_config_contract))
-    error_message = "machine_config_contract must be a full release tag with a leading v, e.g. v1.13.0."
+    error_message = "machine_config_contract must be a full release tag with a leading v, e.g. v1.14.0."
   }
 }
 

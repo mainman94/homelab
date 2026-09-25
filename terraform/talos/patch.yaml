@@ -1,48 +1,82 @@
 # Shared configuration applied to every control plane node, on top of the
 # generated base config and before the per-node patches in config.tf.
 #
-# On document formats: Talos 1.14 deprecates the v1alpha1 `machine:` /
-# `cluster:` fields below in favour of single-purpose documents. The base
-# config is generated against a 1.13 contract (`var.machine_config_contract`)
-# so these fields stay valid; moving them to the new documents is the
-# prerequisite for bumping that contract. config.tf and readme.md have the
-# detail.
-machine:
-  features:
-    kubePrism:
-      enabled: true
-      port: 7445
-  files:
-    - op: create
-      path: /etc/cri/conf.d/20-customization.part
-      content: |
-        [plugins."io.containerd.cri.v1.images"]
-          discard_unpacked_layers = false
+# On document formats: the base config is generated against a 1.14 contract
+# (`var.machine_config_contract`), which emits the Kubernetes settings as
+# single-purpose documents (KubeSchedulerConfig, KubeProxyConfig, ...). Talos
+# rejects a config that also sets the matching v1alpha1 field ("... is already
+# set in v1alpha1 config"), so everything below patches those documents by
+# kind. etcd has no document yet and stays in the v1alpha1 tree.
 cluster:
-  allowSchedulingOnControlPlanes: true
-  # Talos binds both to 127.0.0.1 by default, which leaves Prometheus unable to
-  # scrape them and KubeSchedulerInstanceUnreachable /
-  # KubeControllerManagerInstanceUnreachable firing forever. The secure ports
-  # (10259 / 10257) still require authn + authz, so this exposes authenticated
-  # TLS endpoints on the LAN, not open metrics.
-  controllerManager:
-    extraArgs:
-      bind-address: 0.0.0.0
-  scheduler:
-    extraArgs:
-      bind-address: 0.0.0.0
-  # Same story for etcd: without a metrics listener the kube-etcd Service in
-  # kube-prometheus-stack never gets endpoints and the etcd dashboard stays
-  # empty. 2381 is the metrics-only listener — read-only, no client certs, and
-  # separate from the client (2379) and peer (2380) ports that stay mTLS.
+  # Same story as the scheduler / controller-manager below: without a metrics
+  # listener the kube-etcd Service in kube-prometheus-stack never gets
+  # endpoints and the etcd dashboard stays empty. 2381 is the metrics-only
+  # listener — read-only, no client certs, and separate from the client (2379)
+  # and peer (2380) ports that stay mTLS.
   etcd:
     extraArgs:
       listen-metrics-urls: http://0.0.0.0:2381
-  network:
-    cni:
-      name: none
-  proxy:
-    disabled: true
+---
+# Replaces `cluster.allowSchedulingOnControlPlanes`, which has no document
+# equivalent: the generator puts a NoSchedule taint on every control-plane
+# node, and every node in this cluster is one. `$patch: delete` removes the
+# whole taints map and keeps the generated labels; an empty map (`{}`) merges
+# into nothing and leaves the taint in place.
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+taints:
+  $patch: delete
+---
+# Talos binds both to 127.0.0.1 by default, which leaves Prometheus unable to
+# scrape them and KubeSchedulerInstanceUnreachable /
+# KubeControllerManagerInstanceUnreachable firing forever. The secure ports
+# (10259 / 10257) still require authn + authz, so this exposes authenticated
+# TLS endpoints on the LAN, not open metrics.
+apiVersion: v1alpha1
+kind: KubeControllerManagerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+---
+apiVersion: v1alpha1
+kind: KubeSchedulerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+---
+# Cilium replaces kube-proxy and is installed out of band.
+apiVersion: v1alpha1
+kind: KubeProxyConfig
+enabled: false
+---
+# Replaces `cluster.network.cni.name: none`: with no Flannel document (and no
+# v1alpha1 `cluster.network`), Talos deploys no CNI at all.
+apiVersion: v1alpha1
+kind: KubeFlannelCNIConfig
+$patch: delete
+---
+# Two defaults the 1.14 contract adds that a cluster upgraded from 1.13 does
+# not have, dropped so switching the contract changes the config's shape and
+# not the nodes' behavior. Workload isolation moves containerd, the kubelet and
+# every pod into a sandbox namespace (Talos itself leaves upgraded clusters
+# without it); the secure EPHEMERAL mount puts nosuid/nodev/noexec on /var,
+# which holds containerd's state and the Longhorn mount. Adopt either
+# deliberately, one node at a time.
+apiVersion: v1alpha1
+kind: SecurityProfileConfig
+$patch: delete
+---
+apiVersion: v1alpha1
+kind: VolumeConfig
+name: EPHEMERAL
+$patch: delete
+---
+# Replaces the `machine.files` entry for /etc/cri/conf.d/20-customization.part.
+# Applying or changing it restarts containerd; running containers survive it.
+apiVersion: v1alpha1
+kind: CRICustomizationConfig
+name: discard-unpacked-layers
+content: |
+  [plugins."io.containerd.cri.v1.images"]
+    discard_unpacked_layers = false
 ---
 # Replaces the deprecated `machine.time`. Talos rejects a config that sets
 # both, so the v1alpha1 block above must stay gone.
@@ -65,13 +99,3 @@ ntp:
     - 0.at.pool.ntp.org
     - 1.at.pool.ntp.org
     - ts1.aco.net
----
-apiVersion: v1alpha1
-kind: NetworkRuleConfig
-name: splunk-otel-collector-ingress
-portSelector:
-  ports:
-    - 13133
-  protocol: tcp
-ingress:
-  - subnet: 192.168.0.0/24

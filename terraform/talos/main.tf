@@ -48,8 +48,8 @@ resource "talos_machine" "controlplane" {
   client_configuration  = talos_machine_secrets.this.client_configuration
   machine_configuration = data.talos_machine_configuration.controlplane[each.key].machine_configuration
 
-  # Same value already baked into machine.install.image in config.tf's
-  # controlplane_patches. Setting it here too is what makes a talos_version /
+  # Same value already baked into the UnattendedInstallConfig in config.tf's
+  # controlplane_install_patches. Setting it here too is what makes a talos_version /
   # system_extensions bump actually upgrade the running OS on the next
   # `terraform apply`, instead of only changing what a fresh install would
   # use — this is the Terraform-driven upgrade path; see "Upgrading Talos" in

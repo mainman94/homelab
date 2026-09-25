@@ -29,7 +29,7 @@ in the same apply and take etcd quorum with it.
 | Component             | Pinned at | Where                          |
 | --------------------- | --------- | ------------------------------ |
 | Talos Linux           | `v1.14.1` | `var.talos_version`            |
-| Machine config contract | `v1.13` | `var.machine_config_contract`  |
+| Machine config contract | `v1.14` | `var.machine_config_contract`  |
 | Kubernetes            | `v1.36.4` | `var.kubernetes_version`       |
 | `siderolabs/talos`    | `~> 0.12.0` | `versions.tf`                |
 
@@ -58,7 +58,7 @@ Three control plane nodes, brought up one at a time:
 2. `cp2` — joins
 3. `cp3` — completes the quorum
 
-Workloads run on the control plane (`allowSchedulingOnControlPlanes`), so there
+Workloads run on the control plane (no `NoSchedule` taint, see below), so there
 are no separate workers.
 
 ## Technical baseline
@@ -83,26 +83,35 @@ version fails the plan rather than producing a schematic quietly missing it.
 - **Metrics** — controller-manager, scheduler and etcd bind their metrics
   listeners to the LAN so Prometheus can scrape them
 
-## Config document formats, and why most of this is still v1alpha1
+## Config document formats
 
-Talos 1.14 deprecates nearly all of the v1alpha1 `machine:` / `cluster:` tree
-in favour of single-purpose documents — `KubeSchedulerConfig`,
-`KubeControllerManagerConfig`, `KubeNodeConfig`, `KubeProxyConfig`,
-`EtcFileConfig`, `SysctlConfig`, `UnattendedInstall` and more.
+The base config is generated against a 1.14 contract
+(`var.machine_config_contract`). That contract emits the Kubernetes settings as
+single-purpose documents — `KubeSchedulerConfig`, `KubeProxyConfig`,
+`KubeNodeConfig`, `UnattendedInstallConfig` and more — and Talos rejects a
+config that also sets the matching v1alpha1 field (*... is already set in
+v1alpha1 config*). So the patches target the documents:
 
-This stack cannot use them yet. `terraform-provider-talos` 0.11.0 embeds the
-Talos machinery **v1.13** SDK and parses every config patch before sending it,
-so a 1.14-only document is rejected at apply time with
-`error decoding document v1alpha1/<Kind>/` — the nodes never see it. The
-documents the 1.13 SDK does know, and which this stack therefore uses, are
-`LinkAliasConfig`, `HostnameConfig`, `TimeSyncConfig`, `NetworkRuleConfig`,
-`UserVolumeConfig` and `VolumeConfig`.
+| Setting                         | Document                                       |
+| ------------------------------- | ---------------------------------------------- |
+| Install disk + installer image  | `UnattendedInstallConfig` (per node)           |
+| Scheduling on control planes    | `KubeNodeConfig`, `taints: {$patch: delete}`   |
+| Scheduler / controller-manager  | `KubeSchedulerConfig` / `KubeControllerManagerConfig` |
+| No kube-proxy                   | `KubeProxyConfig`, `enabled: false`            |
+| No CNI                          | `KubeFlannelCNIConfig`, `$patch: delete`       |
+| containerd tweak                | `CRICustomizationConfig`                       |
+| KubePrism on 7445               | generated `KubePrismConfig`, nothing to patch  |
 
-The deprecated fields still work in Talos 1.14 — `talosctl validate` accepts the
-generated configuration for `metal` mode and warns only about
-`.machine.files`. When the provider ships a 1.14 SDK, the rest can move.
+Still v1alpha1, because nothing conflicts with them: `machine.network.interfaces`
+(with the VIP), `cluster.etcd`, and `machine.disks`.
 
-Two places where this bites, both handled:
+There is no document equivalent of `allowSchedulingOnControlPlanes`: the
+generator always taints control-plane nodes `NoSchedule`, and the provider has
+no option to stop it. Deleting the `taints` key is the fix. `taints: {}` does
+not work, because an empty map merges into the generated one and changes
+nothing.
+
+Two more places where this bites, both handled:
 
 - **Hostname.** The generated base config already contains a `HostnameConfig`
   document with `auto: stable`. Setting `machine.network.hostname` as well
@@ -246,7 +255,7 @@ terraform plan -var wait_for_cluster_health=false
 ### Upgrading Talos
 
 `terraform apply` upgrades running nodes directly — `talos_machine.image` is
-set to the same installer image baked into `machine.install.image`, so a
+set to the same installer image baked into the `UnattendedInstallConfig`, so a
 version bump changes both at once:
 
 ```bash
@@ -265,12 +274,11 @@ instead of risking all three at once. Watch health between nodes
 abort before the next one starts.
 
 The machine configuration *contract* is a separate pin,
-`var.machine_config_contract` (1.13), and does not move with `talos_version`.
-A 1.14 contract generates the new multi-document config, which Talos rejects
-next to the v1alpha1 fields in `patch.yaml` ("... is already set in v1alpha1
-config") and which has no equivalent of `allowSchedulingOnControlPlanes` —
-every control-plane node would get a `NoSchedule` taint. Bump it only after
-moving `patch.yaml` to the new documents.
+`var.machine_config_contract` (1.14), and does not move with `talos_version`.
+A Talos upgrade does not need it. A contract bump changes the shape of the
+generated config — 1.14 is what moved the Kubernetes settings into documents —
+so bump it only together with `patch.yaml` and `config.tf`, and render the
+result (`talosctl validate --mode metal`) before applying.
 
 ### Upgrading Kubernetes
 
