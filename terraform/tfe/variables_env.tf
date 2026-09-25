@@ -58,3 +58,17 @@ resource "tfe_variable" "vault_auth" {
   description  = each.value.description
   sensitive    = false
 }
+
+# talos_machine has no staged apply mode, so a reboot-requiring config change
+# reboots a node as soon as its apply step runs. Parallelism 1 keeps the three
+# control-plane nodes sequential and etcd quorum intact. TFE_PARALLELISM is
+# not honored by the agent pool (run-HsCPdzPtSKs7wefo modified all three at
+# once with it set), so the flag goes to the Terraform CLI directly.
+resource "tfe_variable" "talos_apply_parallelism" {
+  workspace_id = tfe_workspace.this["eggenberg-talos-cluster"].id
+  key          = "TF_CLI_ARGS_apply"
+  value        = "-parallelism=1"
+  category     = "env"
+  description  = "Keep control-plane applies sequential (etcd quorum); see terraform/talos/main.tf"
+  sensitive    = false
+}

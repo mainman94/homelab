@@ -22,7 +22,9 @@ nodes are on the LAN and a remote runner cannot reach them.
 "staged_if_needing_reboot"` — a config change that needs a reboot applies, and
 reboots the node, immediately. With `controlplane` a `for_each` over up to
 three nodes, default parallelism could reboot all three control-plane nodes
-in the same apply and take etcd quorum with it.
+in the same apply and take etcd quorum with it. VCS-triggered TFC runs get the
+flag from `TF_CLI_ARGS_apply`, set on the workspace by `terraform/tfe`.
+`TFE_PARALLELISM` is not enough: the agent pool ignores it.
 
 ## Versions
 
