@@ -4,8 +4,11 @@ terraform {
 
   required_providers {
     pocketid = {
-      source  = "Trozz/pocketid"
-      version = "~> 2.0"
+      source = "Trozz/pocketid"
+      # >= 2.4.2: fixes client-secret creation 404 against Pocket-ID
+      # server 2.14+ (github.com/Trozz/terraform-provider-pocketid#97).
+      # We run Pocket-ID v2.16.0.
+      version = "~> 2.4"
     }
     vault = {
       source  = "hashicorp/vault"
