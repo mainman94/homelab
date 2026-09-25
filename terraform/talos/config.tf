@@ -4,14 +4,12 @@
 # On config document formats: Talos 1.14 deprecates most of the v1alpha1
 # `machine:` / `cluster:` tree in favour of single-purpose documents
 # (KubeSchedulerConfig, EtcFileConfig, SysctlConfig, UnattendedInstall, ...).
-# This stack does not use them yet: the base config is generated against
-# `var.machine_config_contract` (1.13), where those settings still live in the
-# v1alpha1 tree. Generating against 1.14 emits the new documents in the base
-# config, Talos rejects them next to the v1alpha1 fields patch.yaml sets, and
-# there is no document equivalent of `allowSchedulingOnControlPlanes`. What
-# this stack does use from the new format is LinkAliasConfig,
-# NetworkRuleConfig, TimeSyncConfig, HostnameConfig, UserVolumeConfig and
-# VolumeConfig; see readme.md.
+# The base config is generated against `var.machine_config_contract` (1.14),
+# which emits those documents itself, and Talos rejects a config that also sets
+# the matching v1alpha1 field. So the patches here and in patch.yaml target the
+# documents by kind. What stays in the v1alpha1 tree is what has no conflicting
+# document: `machine.network.interfaces` (with the VIP), `machine.disks` (see
+# below), and `cluster.etcd`.
 
 locals {
   common_patch = file("${path.module}/${var.common_config_patch_file}")
@@ -55,6 +53,24 @@ locals {
     )
   }
 
+  # Replaces the v1alpha1 `machine.install`, which Talos rejects next to the
+  # generated UnattendedInstallConfig. install_disk is a /dev/disk/by-id path,
+  # so it is matched against the disk's symlinks rather than `dev_path`
+  # (/dev/sdX), which is exactly the enumeration-order dependency by-id avoids.
+  controlplane_install_patches = {
+    for name, node in var.controlplane_nodes :
+    name => trimspace(<<-EOT
+      apiVersion: v1alpha1
+      kind: UnattendedInstallConfig
+      installer:
+        image: ${local.install_image}
+      provisioning:
+        diskSelector:
+          match: '"${node.install_disk}" in disk.symlinks'
+    EOT
+    )
+  }
+
   controlplane_patches = {
     for name, node in var.controlplane_nodes :
     name => yamlencode({
@@ -77,10 +93,6 @@ locals {
                 }
               }
             ]
-          }
-          install = {
-            disk  = node.install_disk
-            image = local.install_image
           }
         },
         # Deprecated in Talos 1.14 in favour of UserVolumeConfig, and kept
@@ -125,6 +137,7 @@ data "talos_machine_configuration" "controlplane" {
     local.common_patch,
     local.controlplane_link_alias_patches[each.key],
     local.controlplane_hostname_patches[each.key],
+    local.controlplane_install_patches[each.key],
     local.controlplane_patches[each.key],
   ])
 }
