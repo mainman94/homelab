@@ -409,6 +409,16 @@ run "rejects_a_talos_version_without_the_v_prefix" {
   expect_failures = [var.talos_version]
 }
 
+run "rejects_a_machine_config_contract_without_the_v_prefix" {
+  command = plan
+
+  variables {
+    machine_config_contract = "1.13.0"
+  }
+
+  expect_failures = [var.machine_config_contract]
+}
+
 run "rejects_a_kubernetes_minor_without_a_patch" {
   command = plan
 

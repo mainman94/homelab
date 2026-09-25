@@ -45,9 +45,9 @@ variable "gateway" {
 
 variable "talos_version" {
   description = <<-EOT
-    Talos version for the Image Factory installer image, and the machine
-    configuration contract. Bumping this does not upgrade running nodes on its
-    own — see "Upgrading Talos" in readme.md.
+    Talos version for the Image Factory installer image, which
+    `talos_machine.image` rolls out to running nodes on apply — see
+    "Upgrading Talos" in readme.md.
   EOT
   type        = string
   default     = "v1.14.1"
@@ -55,6 +55,25 @@ variable "talos_version" {
   validation {
     condition     = can(regex("^v[0-9]+[.][0-9]+[.][0-9]+$", var.talos_version))
     error_message = "talos_version must be a full release tag with a leading v, e.g. v1.14.1."
+  }
+}
+
+variable "machine_config_contract" {
+  description = <<-EOT
+    Version contract the base machine configuration is generated against,
+    separate from `talos_version` on purpose. A 1.14 contract generates the
+    multi-document config (KubePrismConfig, KubeProxyConfig,
+    UnattendedInstallConfig, ...), which Talos refuses alongside the v1alpha1
+    fields patch.yaml still sets, and which has no replacement for
+    `cluster.allowSchedulingOnControlPlanes` — so it stays on 1.13 until the
+    patches move to the new documents. Only major.minor matters.
+  EOT
+  type        = string
+  default     = "v1.13.0"
+
+  validation {
+    condition     = can(regex("^v[0-9]+[.][0-9]+[.][0-9]+$", var.machine_config_contract))
+    error_message = "machine_config_contract must be a full release tag with a leading v, e.g. v1.13.0."
   }
 }
 

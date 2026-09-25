@@ -2,11 +2,11 @@
 # generated base config and before the per-node patches in config.tf.
 #
 # On document formats: Talos 1.14 deprecates the v1alpha1 `machine:` /
-# `cluster:` fields below in favour of single-purpose documents, but
-# terraform-provider-talos 0.11 embeds the Talos machinery v1.13 SDK and
-# rejects any document that SDK does not know — so the replacements are not
-# reachable from here yet. The one that is, TimeSyncConfig, is used below.
-# config.tf and readme.md have the detail.
+# `cluster:` fields below in favour of single-purpose documents. The base
+# config is generated against a 1.13 contract (`var.machine_config_contract`)
+# so these fields stay valid; moving them to the new documents is the
+# prerequisite for bumping that contract. config.tf and readme.md have the
+# detail.
 machine:
   features:
     kubePrism:
