@@ -4,14 +4,14 @@
 # On config document formats: Talos 1.14 deprecates most of the v1alpha1
 # `machine:` / `cluster:` tree in favour of single-purpose documents
 # (KubeSchedulerConfig, EtcFileConfig, SysctlConfig, UnattendedInstall, ...).
-# This stack cannot use them yet. `terraform-provider-talos` 0.11.0 embeds the
-# Talos machinery v1.13 SDK, and it parses every config patch before sending
-# it, so a 1.14-only document fails the apply with
-# `error decoding document v1alpha1/<Kind>/` — the nodes never see it. What
-# 1.13 does know, and what this stack therefore uses, is LinkAliasConfig,
-# NetworkRuleConfig, TimeSyncConfig, UserVolumeConfig and VolumeConfig. The
-# rest stays on the deprecated-but-supported v1alpha1 fields until the
-# provider ships a 1.14 SDK; see readme.md.
+# This stack does not use them yet: the base config is generated against
+# `var.machine_config_contract` (1.13), where those settings still live in the
+# v1alpha1 tree. Generating against 1.14 emits the new documents in the base
+# config, Talos rejects them next to the v1alpha1 fields patch.yaml sets, and
+# there is no document equivalent of `allowSchedulingOnControlPlanes`. What
+# this stack does use from the new format is LinkAliasConfig,
+# NetworkRuleConfig, TimeSyncConfig, HostnameConfig, UserVolumeConfig and
+# VolumeConfig; see readme.md.
 
 locals {
   common_patch = file("${path.module}/${var.common_config_patch_file}")
@@ -117,9 +117,9 @@ data "talos_machine_configuration" "controlplane" {
   # The version contract the base config is generated against. Left unset, the
   # provider generates against whatever its bundled SDK defaults to, so a
   # provider upgrade silently switches on new machine-config features and
-  # rewrites the config of every node. Tying it to the version actually being
-  # installed makes that an explicit, reviewable change.
-  talos_version = var.talos_version
+  # rewrites the config of every node. Pinning it explicitly makes that a
+  # reviewable change — see the variable for why it trails talos_version.
+  talos_version = var.machine_config_contract
 
   config_patches = compact([
     local.common_patch,

@@ -29,6 +29,7 @@ in the same apply and take etcd quorum with it.
 | Component             | Pinned at | Where                          |
 | --------------------- | --------- | ------------------------------ |
 | Talos Linux           | `v1.14.1` | `var.talos_version`            |
+| Machine config contract | `v1.13` | `var.machine_config_contract`  |
 | Kubernetes            | `v1.36.4` | `var.kubernetes_version`       |
 | `siderolabs/talos`    | `~> 0.12.0` | `versions.tf`                |
 
@@ -263,9 +264,13 @@ instead of risking all three at once. Watch health between nodes
 (`talosctl --talosconfig ./talosconfig -n <node> health`) if you want to
 abort before the next one starts.
 
-Bumping `talos_version` also moves the machine configuration *contract* the
-provider generates against, which is pinned to the same variable. Read the
-plan diff before applying it.
+The machine configuration *contract* is a separate pin,
+`var.machine_config_contract` (1.13), and does not move with `talos_version`.
+A 1.14 contract generates the new multi-document config, which Talos rejects
+next to the v1alpha1 fields in `patch.yaml` ("... is already set in v1alpha1
+config") and which has no equivalent of `allowSchedulingOnControlPlanes` —
+every control-plane node would get a `NoSchedule` taint. Bump it only after
+moving `patch.yaml` to the new documents.
 
 ### Upgrading Kubernetes
 
