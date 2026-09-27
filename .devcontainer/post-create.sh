@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Provision the dev container. Everything the repo needs is pinned in
-# mise.toml — terraform, tflint, python, pre-commit, actionlint, shellcheck,
+# mise.toml — terraform, tflint, python, prek, actionlint, shellcheck,
 # trivy — so this installs mise and lets it do the rest. Ansible stays a
 # devcontainer feature: `make ansible-run` needs it, and the pre-commit
 # ansible-lint hook brings its own ansible-core anyway. CI installs from the
@@ -18,16 +18,16 @@ for shell in bash zsh; do
   grep -q "mise activate" "$rc" || echo "eval \"\$(mise activate $shell)\"" >> "$rc"
 done
 
-echo "==> installing the pinned toolchain (terraform, tflint, python, pre-commit, actionlint, shellcheck, trivy)"
+echo "==> installing the pinned toolchain (terraform, tflint, python, prek, actionlint, shellcheck, trivy)"
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 mise trust
 mise install
 
 echo "==> installing the git hook"
-mise exec -- pre-commit install
+mise exec -- prek install
 
 echo "==> warming hook environments"
-mise exec -- pre-commit install-hooks
+mise exec -- prek prepare-hooks
 
 cat <<'MSG'
 

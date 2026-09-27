@@ -70,7 +70,7 @@ override with `make TF=tofu ...`. `.devcontainer/` provides ansible;
 everything else comes from mise.
 
 **Tool versions live in `mise.toml` and nowhere else** — terraform, tflint,
-python, pre-commit, actionlint, shellcheck, trivy. The dev container's
+python, prek, actionlint, shellcheck, trivy. The dev container's
 post-create runs `mise install`, and CI installs from the same file with
 `jdx/mise-action`. Both used to ask for `latest` independently, so two
 machines could be a Terraform release apart and "it validates locally" meant
