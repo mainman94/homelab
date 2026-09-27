@@ -43,7 +43,7 @@ Shared Terraform modules live in the sibling repository `../homelab-terraform-mo
   a Terraform >= 1.10 feature OpenTofu does not implement — `tofu validate`
   fails on those four.
 - `mise install` (or `make tools`) installs the pinned toolchain from
-  `mise.toml`: terraform, tflint, python, pre-commit, actionlint, shellcheck
+  `mise.toml`: terraform, tflint, python, prek, actionlint, shellcheck
   and trivy. CI installs from the same file, so a local run and a CI run agree.
   `.devcontainer/` does this for you and adds ansible.
 - Access to the relevant Cloudflare, GitHub, OpenBao, Backblaze, and OCI accounts

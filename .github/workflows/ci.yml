@@ -25,15 +25,15 @@ jobs:
       # installing it here would make every lint run depend on the TUF CDN.
       - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
         with:
-          install_args: terraform tflint python pre-commit actionlint shellcheck
+          install_args: terraform tflint python prek actionlint shellcheck
 
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
-          path: ~/.cache/pre-commit
-          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+          path: ~/.cache/prek
+          key: prek-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Run every hook
-        run: pre-commit run --all-files --show-diff-on-failure
+        run: prek run --all-files --show-diff-on-failure
 
   validate:
     name: validate (${{ matrix.stack }})

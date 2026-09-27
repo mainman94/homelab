@@ -35,11 +35,11 @@ tools: ## Install the pinned toolchain from mise.toml
 
 .PHONY: hooks
 hooks: ## Install the git pre-commit hook
-	pre-commit install
+	prek install
 
 .PHONY: lint
 lint: ## Run every pre-commit hook over the whole tree
-	pre-commit run --all-files
+	prek run --all-files
 
 .PHONY: fmt
 fmt: ## Rewrite Terraform files to canonical format
@@ -104,7 +104,7 @@ scan: ## trivy config scan, the same one CI runs (advisory)
 
 .PHONY: ansible-lint
 ansible-lint: ## Lint the playbooks
-	pre-commit run ansible-lint --all-files
+	prek run ansible-lint --all-files
 
 .PHONY: ansible-check
 ansible-check: ## Dry-run the Cloudflare allowlist playbook against the router
@@ -125,4 +125,4 @@ clean: ## Remove downloaded providers
 
 .PHONY: update-hooks
 update-hooks: ## Bump pinned hook revisions
-	pre-commit autoupdate
+	prek update
