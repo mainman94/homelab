@@ -30,7 +30,7 @@ flag from `TF_CLI_ARGS_apply`, set on the workspace by `terraform/tfe`.
 
 | Component             | Pinned at | Where                          |
 | --------------------- | --------- | ------------------------------ |
-| Talos Linux           | `v1.14.1` | `var.talos_version`            |
+| Talos Linux           | `v1.14.2` | `var.talos_version`            |
 | Machine config contract | `v1.14` | `var.machine_config_contract`  |
 | Kubernetes            | `v1.36.4` | `var.kubernetes_version`       |
 | `siderolabs/talos`    | `~> 0.12.0` | `versions.tf`                |
