@@ -15,5 +15,9 @@ terraform {
       # migrating is separate follow-up work, not done by this bump.
       version = "~> 0.12.0"
     }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.4"
+    }
   }
 }
