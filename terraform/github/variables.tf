@@ -294,6 +294,18 @@ variable "repositories" {
       # default on its own.
       default_branch = null
     }
+    super_intelligence = {
+      name       = "super-intelligence"
+      visibility = "private"
+
+      has_projects = false
+      has_wiki     = false
+
+      # Same as .agents: user-owned private repo rejects the forking field,
+      # and it is created empty, so there is no branch to make default yet.
+      allow_forking  = null
+      default_branch = null
+    }
     pp_portfolio_classifier = {
       name        = "pp-portfolio-classifier"
       description = "Portfolio classifier rewrite in Go"
