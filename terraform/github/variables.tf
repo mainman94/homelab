@@ -306,6 +306,19 @@ variable "repositories" {
       allow_forking  = null
       default_branch = null
     }
+    super_intelligence_mcp = {
+      name        = "super-intelligence-mcp"
+      description = "Remote MCP server exposing the super-intelligence vault to agents"
+      visibility  = "private"
+
+      has_projects = false
+      has_wiki     = false
+
+      # Same as super-intelligence: private user repo rejects the forking
+      # field, and it is created empty.
+      allow_forking  = null
+      default_branch = null
+    }
     pp_portfolio_classifier = {
       name        = "pp-portfolio-classifier"
       description = "Portfolio classifier rewrite in Go"
