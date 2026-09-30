@@ -38,7 +38,7 @@ repos:
       - id: detect-private-key
 
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.109.1
+    rev: v1.109.2
     hooks:
       - id: terraform_fmt
       # Core ruleset only (see .tflint.hcl); the provider rulesets need a
