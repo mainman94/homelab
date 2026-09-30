@@ -79,7 +79,7 @@ variable "machine_config_contract" {
 variable "kubernetes_version" {
   description = "Target Kubernetes version. Applied by `terraform apply`, so treat a minor bump as a cluster upgrade."
   type        = string
-  default     = "v1.36.4"
+  default     = "v1.37.1"
 
   validation {
     condition     = can(regex("^v[0-9]+[.][0-9]+[.][0-9]+$", var.kubernetes_version))

@@ -32,7 +32,7 @@ flag from `TF_CLI_ARGS_apply`, set on the workspace by `terraform/tfe`.
 | --------------------- | --------- | ------------------------------ |
 | Talos Linux           | `v1.14.2` | `var.talos_version`            |
 | Machine config contract | `v1.14` | `var.machine_config_contract`  |
-| Kubernetes            | `v1.36.4` | `var.kubernetes_version`       |
+| Kubernetes            | `v1.37.1` | `var.kubernetes_version`       |
 | `siderolabs/talos`    | `~> 0.12.0` | `versions.tf`                |
 
 The provider constraint is `~> 0.12.0`, not `~> 0.12`. The provider is
