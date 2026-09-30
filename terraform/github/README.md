@@ -80,6 +80,20 @@ If you already imported these repositories under the older module names, Terrafo
 
 5. Run `terraform plan` and adjust any optional repository settings that should be managed explicitly.
 
+### Adding a private repository
+
+Do not let Terraform create a user-owned private repository. After the POST the
+provider always PATCHes `allow_forking`, which GitHub rejects on non-org private
+repositories ("Allow forks setting can only be changed on org-owned private
+repositories") — even with `allow_forking = null`. The failed create leaves the
+resource tainted, and the next apply replaces it: `archive_on_destroy` archives
+the real repository, then the create fails with "name already exists". This is
+how `super-intelligence` got archived.
+
+Instead: create it with `gh repo create mainman94/<name> --private`, add the
+entry to `var.repositories` with `allow_forking = null`, and adopt it with an
+`import` block in [imports.tf](imports.tf).
+
 ## Security settings
 
 `secret_scanning`, `secret_scanning_push_protection`, and
