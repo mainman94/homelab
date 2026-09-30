@@ -23,7 +23,24 @@ mock_provider "talos" {
       ]
     }
   }
+
+  # drain.tf base64-decodes the Kubernetes CA; the mock's random strings are
+  # not valid base64.
+  mock_resource "talos_machine_secrets" {
+    defaults = {
+      machine_secrets = {
+        certs = {
+          k8s = {
+            cert = "Y2VydA=="
+            key  = "a2V5"
+          }
+        }
+      }
+    }
+  }
 }
+
+mock_provider "tls" {}
 
 variables {
   cluster_name       = "talos-test"
@@ -49,6 +66,11 @@ variables {
 # Every rejection below is only worth something if the happy path still plans.
 run "a_single_control_plane_node_plans" {
   command = plan
+
+  assert {
+    condition     = talos_machine.controlplane["cp1"].drain_on_upgrade
+    error_message = "Upgrades should cordon and drain the node before rebooting it."
+  }
 
   assert {
     condition     = output.talos_endpoints == ["192.168.0.11"]

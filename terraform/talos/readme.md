@@ -30,7 +30,7 @@ flag from `TF_CLI_ARGS_apply`, set on the workspace by `terraform/tfe`.
 
 | Component             | Pinned at | Where                          |
 | --------------------- | --------- | ------------------------------ |
-| Talos Linux           | `v1.14.1` | `var.talos_version`            |
+| Talos Linux           | `v1.14.2` | `var.talos_version`            |
 | Machine config contract | `v1.14` | `var.machine_config_contract`  |
 | Kubernetes            | `v1.37.1` | `var.kubernetes_version`       |
 | `siderolabs/talos`    | `~> 0.12.0` | `versions.tf`                |
@@ -271,7 +271,10 @@ terraform apply -parallelism=1
 `-parallelism=1` is what keeps this safe: `talos_machine` has no staging
 mode, so a node reboots as soon as its `apply` step runs. Parallelism 1 makes
 that sequential across the `for_each`, one control-plane node at a time,
-instead of risking all three at once. Watch health between nodes
+instead of risking all three at once. Before each reboot the node is
+cordoned and drained (`drain_on_upgrade`, kubeconfig from `drain.tf`) and
+uncordoned afterwards. A PodDisruptionBudget that cannot be satisfied blocks
+the drain, and with it the apply, on that node. Watch health between nodes
 (`talosctl --talosconfig ./talosconfig -n <node> health`) if you want to
 abort before the next one starts.
 

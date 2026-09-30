@@ -56,12 +56,12 @@ resource "talos_machine" "controlplane" {
   # readme.md.
   image = local.install_image
 
-  # `true` needs a kubeconfig, and wiring
-  # talos_cluster_kubeconfig.this.kubeconfig_raw in here would create
-  # talos_machine -> talos_cluster_kubeconfig -> talos_machine_bootstrap ->
-  # talos_machine, a dependency cycle Terraform refuses outright. Revisit if
-  # talos_cluster is ever adopted and the graph is restructured around it.
-  drain_on_upgrade = false
+  # Cordon and drain before the upgrade reboot, uncordon after. The
+  # kubeconfig comes from drain.tf, signed locally from the cluster CA, not
+  # from talos_cluster_kubeconfig: that one depends on the bootstrap, which
+  # depends on this resource — a cycle.
+  drain_on_upgrade = true
+  kubeconfig       = local.drain_kubeconfig
 }
 
 resource "talos_machine_bootstrap" "this" {
