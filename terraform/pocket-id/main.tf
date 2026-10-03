@@ -105,6 +105,13 @@ locals {
       launch_url    = "https://grafana.hauptmann.dev"
       groups        = ["homelab"]
     }
+    super-intelligence-mcp = {
+      name          = "Super Intelligence MCP"
+      callback_urls = ["https://simcp.hauptmann.dev/auth/callback"]
+      launch_url    = "https://simcp.hauptmann.dev"
+      pkce_enabled  = true
+      groups        = ["homelab"]
+    }
     dockhand = {
       name          = "Dockhand"
       callback_urls = ["https://dockhand.hauptmann.dev/api/auth/oidc/callback"]
