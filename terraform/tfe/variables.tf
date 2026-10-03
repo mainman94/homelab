@@ -31,7 +31,7 @@ variable "vault_address" {
 variable "terraform_version" {
   description = "Terraform version pinned for all managed workspaces"
   type        = string
-  default     = "1.16.3"
+  default     = "1.16.5"
 }
 
 variable "module_repo_identifier" {
