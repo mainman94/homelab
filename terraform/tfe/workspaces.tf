@@ -57,6 +57,17 @@ locals {
       vault_run_role    = "tfc-pocket-id"
       tags              = ["identity"]
     }
+    "keycloak" = {
+      description       = "Keycloak realm, machine-to-machine clients, and roles"
+      working_directory = "terraform/keycloak"
+      execution_mode    = "agent"
+      terraform_version = var.terraform_version
+      auto_apply        = true
+      vcs_connected     = true
+      trigger_patterns  = ["terraform/keycloak/**/*"]
+      vault_run_role    = "tfc-keycloak"
+      tags              = ["identity"]
+    }
     "eggenberg-talos-cluster" = {
       description       = "Talos bare-metal control plane cluster bootstrap and config"
       working_directory = "terraform/talos"
