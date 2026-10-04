@@ -45,6 +45,7 @@ jobs:
           - cloudflare
           - github
           - infrastructure
+          - keycloak
           - oci-free-cloud-k8s
           - openbao
           - pocket-id

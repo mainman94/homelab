@@ -27,6 +27,7 @@ locals {
     "backblaze"  = ["backblaze"]
     "pocket-id"  = ["pocket-id", "pocket-id-users"]
     "splunk"     = ["splunk"]
+    "keycloak"   = ["keycloak"]
   }
 }
 
