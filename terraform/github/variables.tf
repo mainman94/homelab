@@ -17,13 +17,14 @@ variable "repositories" {
     description                     = optional(string)
     visibility                      = optional(string, "public")
     topics                          = optional(set(string), [])
+    auto_init                       = optional(bool, false)
     has_issues                      = optional(bool, true)
     has_projects                    = optional(bool, false)
     has_wiki                        = optional(bool, false)
     allow_auto_merge                = optional(bool)
     delete_branch_on_merge          = optional(bool, true)
     allow_update_branch             = optional(bool)
-    allow_forking                   = optional(bool, true)
+    allow_forking                   = optional(bool)
     archived                        = optional(bool, false)
     archive_on_destroy              = optional(bool, true)
     vulnerability_alerts            = optional(bool, true)
@@ -280,19 +281,6 @@ variable "repositories" {
 
       has_projects = false
       has_wiki     = false
-
-      # allow_forking defaults to true, but GitHub rejects any PATCH that
-      # touches this field on a user-owned (non-org) private repository —
-      # "Allow forks setting can only be changed on org-owned private
-      # repositories" — even when the desired value is false. null tells the
-      # module to omit the field entirely and leave it unmanaged.
-      allow_forking = null
-
-      # The repo was created empty (no auto_init) and has no branches yet, so
-      # there is nothing for github_branch_default to point at. Leave it null
-      # until a first push exists; GitHub then sets the pushed branch as
-      # default on its own.
-      default_branch = null
     }
     super_intelligence = {
       name       = "super-intelligence"
@@ -300,11 +288,6 @@ variable "repositories" {
 
       has_projects = false
       has_wiki     = false
-
-      # Same as .agents: user-owned private repo rejects the forking field,
-      # and it is created empty, so there is no branch to make default yet.
-      allow_forking  = null
-      default_branch = null
     }
     super_intelligence_mcp = {
       name        = "super-intelligence-mcp"
@@ -313,11 +296,20 @@ variable "repositories" {
 
       has_projects = false
       has_wiki     = false
+    }
+    renovate_runner = {
+      name        = "renovate-runner"
+      description = "Self-hosted Renovate, runs daily across the homelab repositories"
+      # Private: Renovate's logs name private repositories and their
+      # dependencies, and Actions logs are as visible as the repository.
+      visibility = "private"
+      topics     = ["renovate", "homelab"]
 
-      # Same as super-intelligence: private user repo rejects the forking
-      # field, and it is created empty.
-      allow_forking  = null
-      default_branch = null
+      has_projects = false
+      has_wiki     = false
+
+      # Starts with a commit on main, so the default branch can be set.
+      auto_init = true
     }
     pp_portfolio_classifier = {
       name        = "pp-portfolio-classifier"
