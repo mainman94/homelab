@@ -10,12 +10,13 @@ locals {
 
 module "repositories" {
   for_each = var.repositories
-  source   = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.9"
+  source   = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.10"
 
   name         = each.value.name
   description  = each.value.description
   visibility   = each.value.visibility
   topics       = each.value.topics
+  auto_init    = each.value.auto_init
   has_issues   = each.value.has_issues
   has_projects = each.value.has_projects
   has_wiki     = each.value.has_wiki

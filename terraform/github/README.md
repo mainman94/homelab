@@ -34,6 +34,7 @@ only lists what differs per repository.
 | `.agents` | private | — | rulesets need GitHub Pro on private repos |
 | `super-intelligence` | private | — | rulesets need GitHub Pro on private repos |
 | `super-intelligence-mcp` | private | — | rulesets need GitHub Pro on private repos |
+| `renovate-runner` | private | — | self-hosted Renovate; private because its logs name private repos |
 | `beartainer` | public | — | archived; GitHub rejects writes, values mirror the repository |
 
 Every repository owned by `mainman94` is managed here — there is no
@@ -82,17 +83,22 @@ If you already imported these repositories under the older module names, Terrafo
 
 ### Adding a private repository
 
-Do not let Terraform create a user-owned private repository. After the POST the
-provider always PATCHes `allow_forking`, which GitHub rejects on non-org private
-repositories ("Allow forks setting can only be changed on org-owned private
-repositories") — even with `allow_forking = null`. The failed create leaves the
-resource tainted, and the next apply replaces it: `archive_on_destroy` archives
-the real repository, then the create fails with "name already exists". This is
-how `super-intelligence` got archived.
+Add the entry with `visibility = "private"` and `auto_init = true`, and let
+Terraform create it. Leave `allow_forking` unset: GitHub rejects that field on
+user-owned private repositories ("Allow forks setting can only be changed on
+org-owned private repositories"), and the provider only sends it when it is
+set. `auto_init` gives the repository a first commit on `main`, which
+`default_branch` needs to point at.
 
-Instead: create it with `gh repo create mainman94/<name> --private`, add the
-entry to `var.repositories` with `allow_forking = null`, and adopt it with an
-`import` block in [imports.tf](imports.tf).
+Setting `default_branch = null` does not skip it: like every `optional()`
+attribute with a default, an explicit `null` becomes the default (`"main"`).
+
+`allow_forking` used to be `optional(bool, true)`, and an `optional()` default
+replaces an explicit `null` — so `allow_forking = null` still reached the
+provider as `true`. The create failed after the POST, the resource was
+tainted, and the next apply replaced it: `archive_on_destroy` archived the real
+repository. That is how `super-intelligence` got archived, and why the older
+private repositories were created by hand and imported.
 
 ## Security settings
 
