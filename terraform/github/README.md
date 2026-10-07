@@ -24,7 +24,7 @@ only lists what differs per repository.
 | `homelab` | public | default-branch-protection (+ linear history, PR required, 9 required checks) | |
 | `homelab-terraform-modules` | public | default-branch-protection (+ linear history, PR required, 5 required checks) | projects + wiki on |
 | `multi-k8s-infra` | public | default-branch-protection (+ PR required, 4 required checks) | auto-merge for Renovate, so no linear history |
-| `docker-strapi` | public | default-branch-protection (+ 4 required checks) | admin bypass: the release workflows push to main |
+| `docker-strapi` | public | default-branch-protection (+ 4 required checks) | auto-merge for release PRs; `release` environment (main only); SHA-pinned actions required |
 | `pp-portfolio-classifier` | public | default-branch-protection | no required checks — CI here was not reviewed |
 | `dev-config` | public | default-branch-protection | projects + wiki on; same |
 | `docker-stack` | public | default-branch-protection (+ PR required, 1 required check) | |
@@ -165,10 +165,12 @@ Two rules for choosing contexts:
    `validate (talos)`, `lint (alpine)`. Rename a job and the ruleset stops
    matching, silently, so the two move together.
 
-`docker-strapi` carries a repository-admin bypass: its release workflows push
-straight to `main` with a PAT, and that push is what triggers a publish. A
-required check would reject a push whose checks cannot have run yet. Pull
-requests there are still gated.
+`docker-strapi` has no bypass actor. Its release workflows open a pull request
+with a PAT and enable auto-merge, so a release passes the same four checks as
+any other change; the merge to `main` triggers the publish. Its release secrets
+sit in a `release` environment that only `main` can deploy to (no admin
+override), and the repository requires every action to be pinned to a commit
+SHA.
 
 ## Terraform Cloud note
 
