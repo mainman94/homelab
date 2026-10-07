@@ -10,7 +10,7 @@ locals {
 
 module "repositories" {
   for_each = var.repositories
-  source   = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.1.10"
+  source   = "git::https://github.com/mainman94/homelab-terraform-modules.git//modules/github?ref=github-0.2.0"
 
   name         = each.value.name
   description  = each.value.description
@@ -34,4 +34,6 @@ module "repositories" {
   dependabot_security_updates     = each.value.dependabot_security_updates != null ? each.value.dependabot_security_updates : local.security_default[each.key]
   default_branch                  = each.value.default_branch
   rulesets                        = each.value.rulesets
+  environments                    = each.value.environments
+  actions_permissions             = each.value.actions_permissions
 }

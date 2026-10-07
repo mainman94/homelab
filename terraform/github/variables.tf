@@ -32,6 +32,14 @@ variable "repositories" {
     secret_scanning_push_protection = optional(bool)
     dependabot_security_updates     = optional(bool)
     default_branch                  = optional(string, "main")
+    environments = optional(map(object({
+      deployment_branch_patterns = optional(set(string))
+      can_admins_bypass          = optional(bool, true)
+    })), {})
+    actions_permissions = optional(object({
+      allowed_actions      = optional(string, "all")
+      sha_pinning_required = optional(bool, false)
+    }))
     rulesets = optional(map(object({
       name             = string
       target           = optional(string, "branch")
@@ -383,21 +391,29 @@ variable "repositories" {
       has_projects = false
       has_wiki     = false
 
+      # The release workflows open a pull request and enable auto-merge; the
+      # merge to main is what triggers a publish. Nothing pushes to main
+      # directly, so the ruleset needs no bypass actor.
+      allow_auto_merge = true
+
+      # DOCKER_TOKEN and the release PAT live in this environment. Only main
+      # may run a job that names it, and admins cannot override that.
+      environments = {
+        release = {
+          deployment_branch_patterns = ["main"]
+          can_admins_bypass          = false
+        }
+      }
+
+      # Every action in this repo is already pinned to a commit SHA; this
+      # keeps it that way. The repo publishes signed public images.
+      actions_permissions = {
+        sha_pinning_required = true
+      }
+
       rulesets = {
         default_branch = {
           name = "default-branch-protection"
-          # auto-check-new-releases.yml and manual-release.yml push straight to
-          # main with the PAT — that push is what triggers a publish, and a
-          # required status check would otherwise reject it (the checks have
-          # not run for a commit that does not exist yet). Repository admins
-          # bypass; every pull request still has to be green.
-          bypass_actors = [
-            {
-              actor_type  = "RepositoryRole"
-              actor_id    = 5 # admin
-              bypass_mode = "always"
-            }
-          ]
           rules = {
             deletion         = true
             non_fast_forward = true
