@@ -19,9 +19,6 @@ talosconfig
 !.claude/skills/
 !.claude/agents/
 
-# graft's local graph cache — regenerable, not committed (run `graft build`).
-/graft/
-
 # Local agent tool state — not shared config, same rule as .idea/.vscode.
 .serena/
 .codex/
