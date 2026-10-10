@@ -16,7 +16,7 @@ tflint = "0.64.0"
 # prek builds the rest of the hook toolchain — yamlfmt, shfmt,
 # gitleaks, ansible-lint (which brings its own ansible-core) — into its own
 # cached envs.
-python = "3.14"
+python = "3.15.0"
 prek = "0.5.5"
 
 # actionlint shells out to shellcheck for `run:` blocks.
