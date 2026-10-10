@@ -54,9 +54,9 @@ repos:
       - id: ansible-lint
         files: ^ansible/
         args: [--profile=production]
-        # The hook pins python3.14 upstream; this follows whatever python3 the
-        # machine has, which is what the dev container and CI provide.
-        language_version: python3
+        # Keep the upstream python3.14 pin rather than following the repo's
+        # python: ansible-core lags new Python releases (2.21 crashes on 3.15),
+        # and prek downloads 3.14 itself when the machine lacks it.
 
   - repo: https://github.com/google/yamlfmt
     rev: v0.21.0
