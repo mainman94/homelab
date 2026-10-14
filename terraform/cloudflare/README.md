@@ -16,6 +16,7 @@ The current configuration manages:
 - bot management (fight mode, AI-bot block, crawler protection, managed `robots.txt`)
 - DNSSEC for the zone
 - Zero Trust Access: the Pocket ID identity provider, an owner-only policy, a public bypass policy, and the applications they protect (see [zero_trust.tf](zero_trust.tf))
+- the R2 bucket `pmhme-cnpg-backup` (EU jurisdiction) for CloudNativePG backups, a token scoped to it, and its S3 credentials in OpenBao at `homelab/prod/cnpg-backup` (see [r2.tf](r2.tf)). The stack's API token needs *Workers R2 Storage: Edit* and *Account API Tokens: Edit* for this.
 
 ## Module versioning
 
