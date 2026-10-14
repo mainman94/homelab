@@ -29,6 +29,13 @@ locals {
     "splunk"     = ["splunk"]
     "keycloak"   = ["keycloak"]
   }
+
+  # TFC workspace name -> KV source paths it creates and writes itself
+  # (prod/<source>). Kept out of secret_sources in main.tf so exactly one stack
+  # owns each path.
+  tfc_workspace_writes = {
+    "cloudflare" = ["cnpg-backup"]
+  }
 }
 
 # Read-only policy per workspace, scoped to that workspace's KV paths.
@@ -40,6 +47,24 @@ resource "vault_policy" "tfc_reader" {
     for source in each.value : <<-EOT
       path "${var.kv_mount}/data/prod/${source}" {
         capabilities = ["read"]
+      }
+    EOT
+  ])
+}
+
+# Write policy for paths a workspace owns. metadata/ covers the provider's
+# read-back and delete of the kv-v2 entry.
+resource "vault_policy" "tfc_writer" {
+  for_each = local.tfc_workspace_writes
+  name     = "tfc-${each.key}-writer"
+
+  policy = join("\n", [
+    for source in each.value : <<-EOT
+      path "${var.kv_mount}/data/prod/${source}" {
+        capabilities = ["create", "update", "read", "delete"]
+      }
+      path "${var.kv_mount}/metadata/prod/${source}" {
+        capabilities = ["read", "delete"]
       }
     EOT
   ])
@@ -60,7 +85,10 @@ resource "vault_jwt_auth_backend_role" "tfc" {
     terraform_workspace_name    = each.key
   }
 
-  token_policies = [vault_policy.tfc_reader[each.key].name]
-  token_ttl      = 900
-  token_max_ttl  = 1800
+  token_policies = compact([
+    vault_policy.tfc_reader[each.key].name,
+    try(vault_policy.tfc_writer[each.key].name, ""),
+  ])
+  token_ttl     = 900
+  token_max_ttl = 1800
 }
