@@ -62,6 +62,13 @@ resource "talos_machine" "controlplane" {
   # depends on this resource — a cycle.
   drain_on_upgrade = true
   kubeconfig       = local.drain_kubeconfig
+
+  # The drain waits on Longhorn's instance-manager PDB (0 disruptions allowed
+  # while a volume is still rebuilding after the previous node's reboot), which
+  # outlasts the provider's default update timeout.
+  timeouts = {
+    update = "30m"
+  }
 }
 
 resource "talos_machine_bootstrap" "this" {
