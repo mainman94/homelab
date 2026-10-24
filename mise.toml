@@ -11,7 +11,7 @@
 # Terraform, not OpenTofu: four stacks use `ephemeral` blocks, a
 # Terraform >= 1.10 feature OpenTofu does not implement.
 terraform = "1.16.6"
-tflint = "0.64.0"
+tflint = "0.65.0"
 
 # prek builds the rest of the hook toolchain — yamlfmt, shfmt,
 # gitleaks, ansible-lint (which brings its own ansible-core) — into its own
