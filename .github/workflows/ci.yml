@@ -23,7 +23,7 @@ jobs:
       # install_args names only what this job needs — trivy is in mise.toml
       # for `make scan` and is the one tool aqua verifies through Sigstore, so
       # installing it here would make every lint run depend on the TUF CDN.
-      - uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5
+      - uses: jdx/mise-action@82a612c5ab8bcda7cc5db6b7e81a8e7584c3dc6e # v5
         with:
           install_args: terraform tflint python prek actionlint shellcheck
 
@@ -56,7 +56,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5
+      - uses: jdx/mise-action@82a612c5ab8bcda7cc5db6b7e81a8e7584c3dc6e # v5
         with:
           install_args: terraform
 
@@ -84,7 +84,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5
+      - uses: jdx/mise-action@82a612c5ab8bcda7cc5db6b7e81a8e7584c3dc6e # v5
         with:
           install_args: terraform
 
