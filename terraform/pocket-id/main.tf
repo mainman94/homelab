@@ -120,6 +120,13 @@ locals {
       pkce_enabled  = true
       groups        = ["homelab"]
     }
+    wealthfolio = {
+      name          = "Wealthfolio"
+      callback_urls = ["https://wealth.hauptmann.dev/api/v1/auth/oidc/callback"]
+      launch_url    = "https://wealth.hauptmann.dev"
+      pkce_enabled  = true
+      groups        = ["homelab"]
+    }
   }
 }
 
