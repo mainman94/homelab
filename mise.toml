@@ -18,7 +18,7 @@ tflint = "0.65.0"
 # gitleaks, ansible-lint (which brings its own ansible-core) — into its own
 # cached envs.
 python = "3.15.2"
-prek = "0.5.7"
+prek = "0.5.9"
 
 # actionlint shells out to shellcheck for `run:` blocks.
 actionlint = "1.7.12"
