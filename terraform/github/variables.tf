@@ -431,6 +431,15 @@ variable "repositories" {
         }
       }
     }
+    k8s_agent_workspace = {
+      name        = "k8s-agent-workspace"
+      description = "Helm chart for running AI coding agents (Claude Code, Codex, ...) safely in a Kubernetes cluster"
+      topics      = ["helm", "helm-chart", "kubernetes", "ai-agents", "claude-code", "homelab"]
+      auto_init   = true
+
+      has_projects = false
+      has_wiki     = false
+    }
     profile = {
       name = "mainman94"
 
