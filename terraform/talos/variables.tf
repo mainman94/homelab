@@ -50,7 +50,7 @@ variable "talos_version" {
     "Upgrading Talos" in readme.md.
   EOT
   type        = string
-  default     = "v1.14.5"
+  default     = "v1.14.6"
 
   validation {
     condition     = can(regex("^v[0-9]+[.][0-9]+[.][0-9]+$", var.talos_version))
