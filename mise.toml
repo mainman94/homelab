@@ -10,7 +10,7 @@
 [tools]
 # Terraform, not OpenTofu: four stacks use `ephemeral` blocks, a
 # Terraform >= 1.10 feature OpenTofu does not implement.
-terraform = "1.17.1"
+terraform = "1.17.2"
 tflint = "0.66.0"
 
 
