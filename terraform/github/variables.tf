@@ -440,6 +440,15 @@ variable "repositories" {
       has_projects = false
       has_wiki     = false
     }
+    keycloak_build = {
+      name        = "keycloak-build"
+      description = "Custom Keycloak container image build"
+      topics      = ["keycloak", "docker", "container-image", "homelab"]
+      auto_init   = true
+
+      has_projects = false
+      has_wiki     = false
+    }
     profile = {
       name = "mainman94"
 
