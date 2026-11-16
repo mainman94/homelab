@@ -54,7 +54,7 @@ hooks, and `actionlint` + `zizmor` over `.github/workflows/`.
 Every action reference is pinned to a **commit SHA** with the tag in a
 trailing comment. A moving tag can be repointed at new code without the pin
 changing; Renovate keeps the digests current
-(`helpers:pinGitHubActionDigests`). Do not "tidy" a pin back to `@v7`.
+(`helpers:pinGitHubActionDigests`). Do not "tidy" a pin back to `@v7`. The one exception is `jdx/mise-action`, which stays on the floating `@v5` tag (Renovate `pinDigests: false`, zizmor `ref-pin`) because a digest pin there opened a PR for every patch release.
 
 Deliberately not hooks:
 
