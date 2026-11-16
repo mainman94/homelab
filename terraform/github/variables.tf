@@ -405,10 +405,14 @@ variable "repositories" {
         }
       }
 
-      # Every action in this repo is already pinned to a commit SHA; this
-      # keeps it that way. The repo publishes signed public images.
+      # Every action in this repo is pinned to a commit SHA except
+      # jdx/mise-action, which stays on its floating @v5 tag so Renovate does
+      # not open a PR per patch release. GitHub has no per-action exception
+      # to sha_pinning_required, so the policy is off here; zizmor
+      # (unpinned-uses, hash-pin for everything but mise-action) enforces the
+      # rest in CI. The repo publishes signed public images.
       actions_permissions = {
-        sha_pinning_required = true
+        sha_pinning_required = false
       }
 
       rulesets = {
