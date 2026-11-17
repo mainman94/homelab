@@ -40,6 +40,10 @@ locals {
     bazarr = { name = "Bazarr", domain = "bazarr.hauptmann.dev" }
     umami  = { name = "Umami", domain = "umami.hauptmann.dev" }
     seerr  = { name = "Seerr", domain = "seerr.hauptmann.dev" }
+    # Downloader and indexer manager: both hold credentials for everything
+    # else (Usenet servers, indexer keys, Sonarr/Radarr API keys).
+    sabnzbd  = { name = "SABnzbd", domain = "sabnzbd.hauptmann.dev" }
+    prowlarr = { name = "Prowlarr", domain = "prowlarr.hauptmann.dev" }
     # No auth of their own — Access is the only thing in front of them.
     # Kargo and Argo Workflows are deliberately absent: both already
     # authenticate against Pocket ID themselves.
