@@ -4,8 +4,11 @@ terraform {
 
   required_providers {
     cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 5"
+      source = "cloudflare/cloudflare"
+      # 5.28/5.29 fix the session_duration and app_count perpetual diffs on
+      # Access applications and policies. The lock file is gitignored, so
+      # this constraint is the only pin.
+      version = "~> 5.29"
     }
     vault = {
       source  = "hashicorp/vault"
