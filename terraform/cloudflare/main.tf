@@ -68,10 +68,13 @@ resource "cloudflare_zone_setting" "security_header" {
 }
 
 resource "cloudflare_bot_management" "default" {
-  zone_id                 = var.cloudflare_zone_id
-  fight_mode              = true
-  enable_js               = true
-  ai_bots_protection      = "block"
+  zone_id    = var.cloudflare_zone_id
+  fight_mode = true
+  enable_js  = true
+  # ai_bots_protection is not managed here: the provider sends "block", the
+  # API stores "disabled" and the apply fails with "inconsistent result after
+  # apply" (cloudflare/terraform-provider-cloudflare#7411, open as of 5.29.0).
+  # Set the AI crawler block in the dashboard until that is fixed.
   content_bots_protection = "disabled"
   crawler_protection      = "enabled"
   is_robots_txt_managed   = true
