@@ -435,6 +435,41 @@ variable "repositories" {
         }
       }
     }
+    ha_stromnetzgraz = {
+      name        = "ha-stromnetzgraz"
+      description = "Home Assistant integration for Stromnetz Graz smart meters (maintained fork)"
+      topics      = ["home-assistant", "home-assistant-integration", "hacs", "graz", "smart-meter"]
+
+      has_projects = false
+      has_wiki     = false
+
+      # Fork: upstream's default branch is master, and HACS installs from it.
+      default_branch = "master"
+
+      rulesets = {
+        default_branch = {
+          name = "default-branch-protection"
+          rules = {
+            deletion                = true
+            non_fast_forward        = true
+            required_linear_history = true
+            pull_request = {
+              # Zero approvals: GitHub refuses self-approval. Upstream syncs come
+              # in as a PR too, so both checks run before a change reaches HACS users.
+              required_approving_review_count   = 0
+              required_review_thread_resolution = true
+              allowed_merge_methods             = ["squash", "rebase"]
+            }
+            required_status_checks = {
+              required_checks = [
+                { context = "hacs", integration_id = 15368 },
+                { context = "hassfest", integration_id = 15368 },
+              ]
+            }
+          }
+        }
+      }
+    }
     k8s_agent_workspace = {
       name        = "k8s-agent-workspace"
       description = "Helm chart for running AI coding agents (Claude Code, Codex, ...) safely in a Kubernetes cluster"
