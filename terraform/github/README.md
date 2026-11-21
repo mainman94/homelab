@@ -28,7 +28,7 @@ only lists what differs per repository.
 | `pp-portfolio-classifier` | public | default-branch-protection | no required checks — CI here was not reviewed |
 | `dev-config` | public | default-branch-protection | projects + wiki on; same |
 | `docker-stack` | public | default-branch-protection (+ PR required, 1 required check) | |
-| `ha-stromnetzgraz` | public | default-branch-protection (+ linear history, PR required, 2 required checks) | fork of dreautall/ha-stromnetzgraz; default branch `master` |
+| `ha-stromnetzgraz` | public | default-branch-protection (+ linear history, PR required, 2 required checks) | fork of dreautall/ha-stromnetzgraz |
 | `mainman94` | public | — | profile README repository |
 | `portfolio` | private | — | rulesets need GitHub Pro on private repos |
 | `portfolio-performance` | private | — | rulesets need GitHub Pro on private repos |
