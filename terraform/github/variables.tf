@@ -443,9 +443,6 @@ variable "repositories" {
       has_projects = false
       has_wiki     = false
 
-      # Fork: upstream's default branch is master, and HACS installs from it.
-      default_branch = "master"
-
       rulesets = {
         default_branch = {
           name = "default-branch-protection"
