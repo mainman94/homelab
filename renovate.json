@@ -1,5 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "minimumReleaseAge": "3 days",
   "extends": [
     "config:recommended",
     "helpers:pinGitHubActionDigests"
@@ -12,6 +13,12 @@
       "description": "jdx/mise-action stays on the floating major tag (@v5) instead of a digest pin: the digest churns on every patch release and floods the PR queue.",
       "matchPackageNames": ["jdx/mise-action"],
       "pinDigests": false
+    },
+    {
+      "description": "Action and hook bumps are exercised by CI on the PR itself, so green checks are enough to merge them.",
+      "matchManagers": ["github-actions", "pre-commit"],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pinDigest"],
+      "automerge": true
     },
     {
       "description": "Provider and module pins land in a real plan against live infrastructure, so they get read rather than auto-merged.",
