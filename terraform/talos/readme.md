@@ -20,9 +20,10 @@ nodes are on the LAN and a remote runner cannot reach them.
 **Always apply this stack with `terraform apply -parallelism=1`.**
 `talos_machine` has no equivalent to the old `apply_mode =
 "staged_if_needing_reboot"` — a config change that needs a reboot applies, and
-reboots the node, immediately. With `controlplane` a `for_each` over up to
-three nodes, default parallelism could reboot all three control-plane nodes
-in the same apply and take etcd quorum with it. VCS-triggered TFC runs get the
+reboots the node, immediately. The nodes are three chained resources
+(`talos_machine.cp1` → `cp2` → `cp3`), so a node that fails its drain or
+upgrade stops the apply before the next one is touched; parallelism 1 is the
+second guard against rebooting all three at once and losing etcd quorum. VCS-triggered TFC runs get the
 flag from `TF_CLI_ARGS_apply`, set on the workspace by `terraform/tfe`.
 `TFE_PARALLELISM` is not enough: the agent pool ignores it.
 
@@ -269,9 +270,9 @@ terraform apply -parallelism=1
 ```
 
 `-parallelism=1` is what keeps this safe: `talos_machine` has no staging
-mode, so a node reboots as soon as its `apply` step runs. Parallelism 1 makes
-that sequential across the `for_each`, one control-plane node at a time,
-instead of risking all three at once. Before each reboot the node is
+mode, so a node reboots as soon as its `apply` step runs. The `depends_on` chain
+cp1 → cp2 → cp3 upgrades one node at a time and stops at the first failure;
+parallelism 1 is a second guard. Before each reboot the node is
 cordoned and drained (`drain_on_upgrade`, kubeconfig from `drain.tf`) and
 uncordoned afterwards. A PodDisruptionBudget that cannot be satisfied blocks
 the drain, and with it the apply, on that node. Watch health between nodes
