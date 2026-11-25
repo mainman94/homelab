@@ -68,7 +68,7 @@ run "a_single_control_plane_node_plans" {
   command = plan
 
   assert {
-    condition     = talos_machine.controlplane["cp1"].drain_on_upgrade
+    condition     = talos_machine.cp1["cp1"].drain_on_upgrade
     error_message = "Upgrades should cordon and drain the node before rebooting it."
   }
 
@@ -142,6 +142,30 @@ run "rejects_a_node_map_without_cp1" {
         install_disk  = "/dev/sdc"
         interface_mac = "00:11:22:33:44:55"
         address_cidr  = "192.168.0.11/24"
+      }
+    }
+  }
+
+  expect_failures = [var.controlplane_nodes]
+}
+
+# Each key has its own chained talos_machine; a cp4 would never be applied.
+run "rejects_a_node_key_outside_cp1_to_cp3" {
+  command = plan
+
+  variables {
+    controlplane_nodes = {
+      cp1 = {
+        management_ip = "192.168.0.11"
+        install_disk  = "/dev/sdc"
+        interface_mac = "00:11:22:33:44:55"
+        address_cidr  = "192.168.0.11/24"
+      }
+      cp4 = {
+        management_ip = "192.168.0.12"
+        install_disk  = "/dev/sdc"
+        interface_mac = "00:11:22:33:44:56"
+        address_cidr  = "192.168.0.12/24"
       }
     }
   }

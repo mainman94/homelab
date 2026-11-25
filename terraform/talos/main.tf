@@ -41,8 +41,14 @@ data "talos_client_configuration" "this" {
   nodes                = local.endpoints
 }
 
-resource "talos_machine" "controlplane" {
-  for_each = var.controlplane_nodes
+# One resource per node, chained with depends_on, so a node that fails its
+# drain or upgrade stops the apply before the next node is touched. A single
+# for_each can't do that: its instances don't depend on each other, so
+# Terraform carries on with the rest after one errors, and -parallelism=1 only
+# makes it do so one node at a time. cp2/cp3 are optional, hence the one-key
+# for_each, which also keeps the old ["cpN"] instance keys for the moved blocks.
+resource "talos_machine" "cp1" {
+  for_each = { for k, v in var.controlplane_nodes : k => v if k == "cp1" }
 
   node                  = each.value.management_ip
   client_configuration  = talos_machine_secrets.this.client_configuration
@@ -71,12 +77,63 @@ resource "talos_machine" "controlplane" {
   }
 }
 
+resource "talos_machine" "cp2" {
+  for_each = { for k, v in var.controlplane_nodes : k => v if k == "cp2" }
+
+  node                  = each.value.management_ip
+  client_configuration  = talos_machine_secrets.this.client_configuration
+  machine_configuration = data.talos_machine_configuration.controlplane[each.key].machine_configuration
+  image                 = local.install_image
+  drain_on_upgrade      = true
+  kubeconfig            = local.drain_kubeconfig
+
+  timeouts = {
+    update = "30m"
+  }
+
+  depends_on = [talos_machine.cp1]
+}
+
+resource "talos_machine" "cp3" {
+  for_each = { for k, v in var.controlplane_nodes : k => v if k == "cp3" }
+
+  node                  = each.value.management_ip
+  client_configuration  = talos_machine_secrets.this.client_configuration
+  machine_configuration = data.talos_machine_configuration.controlplane[each.key].machine_configuration
+  image                 = local.install_image
+  drain_on_upgrade      = true
+  kubeconfig            = local.drain_kubeconfig
+
+  timeouts = {
+    update = "30m"
+  }
+
+  depends_on = [talos_machine.cp2]
+}
+
+moved {
+  from = talos_machine.controlplane["cp1"]
+  to   = talos_machine.cp1["cp1"]
+}
+
+moved {
+  from = talos_machine.controlplane["cp2"]
+  to   = talos_machine.cp2["cp2"]
+}
+
+moved {
+  from = talos_machine.controlplane["cp3"]
+  to   = talos_machine.cp3["cp3"]
+}
+
 resource "talos_machine_bootstrap" "this" {
   node                 = var.controlplane_nodes["cp1"].management_ip
   client_configuration = talos_machine_secrets.this.client_configuration
 
   depends_on = [
-    talos_machine.controlplane,
+    talos_machine.cp1,
+    talos_machine.cp2,
+    talos_machine.cp3,
   ]
 }
 

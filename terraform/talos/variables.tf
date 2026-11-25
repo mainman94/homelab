@@ -187,6 +187,12 @@ variable "controlplane_nodes" {
     error_message = "controlplane_nodes must contain at least the cp1 entry."
   }
 
+  # main.tf has one chained talos_machine per key; any other name is never applied.
+  validation {
+    condition     = alltrue([for k in keys(var.controlplane_nodes) : contains(["cp1", "cp2", "cp3"], k)])
+    error_message = "controlplane_nodes keys must be cp1, cp2 or cp3."
+  }
+
   validation {
     condition     = length(var.controlplane_nodes) >= 1 && length(var.controlplane_nodes) <= 3
     error_message = "controlplane_nodes must contain between 1 and 3 nodes."
