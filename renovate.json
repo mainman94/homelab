@@ -8,7 +8,26 @@
   "pre-commit": {
     "enabled": true
   },
+  "customManagers": [
+    {
+      "description": "TFE workspaces get their Terraform version from var.terraform_version; the literal lives in the variable default, so bump it there.",
+      "customType": "regex",
+      "managerFilePatterns": ["/^terraform/tfe/variables\\.tf$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "versioningTemplate": "hashicorp",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    }
+  ],
   "packageRules": [
+    {
+      "description": "tfe_workspace takes terraform_version from an HCL expression Renovate cannot evaluate; the real pin is handled by the custom manager above.",
+      "matchManagers": ["terraform"],
+      "matchDepTypes": ["tfe_workspace"],
+      "matchCurrentValue": "/^\\$\\{/",
+      "enabled": false
+    },
     {
       "description": "jdx/mise-action stays on the floating major tag (@v5) instead of a digest pin: the digest churns on every patch release and floods the PR queue.",
       "matchPackageNames": ["jdx/mise-action"],
