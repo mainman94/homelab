@@ -32,7 +32,7 @@ variable "terraform_version" {
   description = "Terraform version pinned for all managed workspaces"
   type        = string
   # renovate: datasource=github-releases depName=hashicorp/terraform
-  default = "1.16.5"
+  default = "1.17.2"
 }
 
 variable "module_repo_identifier" {
